@@ -8,6 +8,8 @@
 {% block head_extra %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
+<canvas id="matrix-rain-canvas" aria-hidden="true"></canvas>
+<script src="{{ url_for('static', filename='js/matrix-rain.js') }}"></script>
 
 {% block conteudo_completo %}
 <header class="topo">

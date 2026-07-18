@@ -17,6 +17,7 @@
     <a href="{{ url_for('admin.alunos') }}">Alunos</a> (admin/supervisor).
 </p>
 
+<div class="tabela-wrap">
 <table class="tabela">
     <thead>
         <tr><th>Foto</th><th>Nome</th><th>Sala</th><th>Status</th><th>Ativo</th><th>Ações</th></tr>
@@ -56,4 +57,5 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 {% endblock %}

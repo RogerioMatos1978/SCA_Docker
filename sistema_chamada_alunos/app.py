@@ -61,9 +61,9 @@ def create_app(config_name=None):
         conn.close()
     if credenciais_iniciais:
         app.logger.warning(
-            "Usuário administrador padrão criado: email=%s senha=%s "
+            "Usuário administrador padrão criado: usuario=%s senha=%s "
             "(troque a senha assim que possível em /admin/usuarios)",
-            credenciais_iniciais["email"], credenciais_iniciais["senha"],
+            credenciais_iniciais["usuario"], credenciais_iniciais["senha"],
         )
 
     csrf.init_app(app)

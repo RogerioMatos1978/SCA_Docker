@@ -47,7 +47,7 @@ Para ver os logs depois: `docker compose logs -f`.
 Na primeira vez que o sistema roda, ele cria automaticamente um
 usuário administrador:
 
-- **E-mail:** `admin@local`
+- **Usuário:** `admin`
 - **Senha:** `admin123`
 
 Veja essa mensagem também nos logs (`docker compose logs`).

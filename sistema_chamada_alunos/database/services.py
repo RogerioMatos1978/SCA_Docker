@@ -36,23 +36,23 @@ def existe_algum_usuario(conn):
 def criar_usuario_padrao_se_nao_existir(conn):
     """Na primeira vez que o sistema roda (banco vazio de usuários),
     cria um administrador padrão para dar acesso inicial ao sistema.
-    Credenciais: admin@local / admin123 — o próprio README avisa para
+    Credenciais: admin / admin123 — o próprio README avisa para
     trocar a senha assim que possível."""
     if existe_algum_usuario(conn):
         return None
     senha_hash = generate_password_hash("admin123")
     conn.execute(
-        """INSERT INTO usuarios (nome, email, senha_hash, perfil, ativo)
+        """INSERT INTO usuarios (nome, usuario, senha_hash, perfil, ativo)
            VALUES (?, ?, ?, 'administrador', 1)""",
-        ("Administrador", "admin@local", senha_hash),
+        ("Administrador", "admin", senha_hash),
     )
     conn.commit()
-    return {"email": "admin@local", "senha": "admin123"}
+    return {"usuario": "admin", "senha": "admin123"}
 
 
-def buscar_usuario_por_email(conn, email):
+def buscar_usuario_por_login(conn, usuario):
     return conn.execute(
-        "SELECT * FROM usuarios WHERE email = ?", (email,)
+        "SELECT * FROM usuarios WHERE usuario = ?", (usuario,)
     ).fetchone()
 
 
@@ -85,12 +85,12 @@ def listar_usuarios(conn):
     ).fetchall()
 
 
-def criar_usuario(conn, nome, email, senha, perfil):
+def criar_usuario(conn, nome, usuario, senha, perfil):
     senha_hash = generate_password_hash(senha)
     conn.execute(
-        """INSERT INTO usuarios (nome, email, senha_hash, perfil, ativo)
+        """INSERT INTO usuarios (nome, usuario, senha_hash, perfil, ativo)
            VALUES (?, ?, ?, ?, 1)""",
-        (nome, email, senha_hash, perfil),
+        (nome, usuario, senha_hash, perfil),
     )
     conn.commit()
 

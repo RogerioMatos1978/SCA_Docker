@@ -75,25 +75,25 @@ def perfil_required(*perfis_permitidos):
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        email = request.form.get("email", "").strip().lower()
+        login_usuario = request.form.get("usuario", "").strip().lower()
         senha = request.form.get("senha", "")
         proximo = request.form.get("proximo") or request.args.get("proximo")
 
         conn = get_db(current_app.config["DATABASE_PATH"])
         try:
-            usuario = services.buscar_usuario_por_email(conn, email)
+            usuario_row = services.buscar_usuario_por_login(conn, login_usuario)
         finally:
             conn.close()
 
-        if not usuario or not usuario["ativo"] or not services.verificar_senha(usuario, senha):
-            flash("E-mail ou senha inválidos.", "erro")
+        if not usuario_row or not usuario_row["ativo"] or not services.verificar_senha(usuario_row, senha):
+            flash("Usuário ou senha inválidos.", "erro")
             return render_template("login.html", proximo=proximo)
 
         session.clear()
-        session["usuario_id"] = usuario["id"]
-        session["usuario_nome"] = usuario["nome"]
-        session["usuario_perfil"] = usuario["perfil"]
-        flash(f"Bem-vindo(a), {usuario['nome']}!", "sucesso")
+        session["usuario_id"] = usuario_row["id"]
+        session["usuario_nome"] = usuario_row["nome"]
+        session["usuario_perfil"] = usuario_row["perfil"]
+        flash(f"Bem-vindo(a), {usuario_row['nome']}!", "sucesso")
         return redirect(proximo or url_for("admin.dashboard"))
 
     proximo = request.args.get("proximo")

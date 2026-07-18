@@ -1,46 +1,98 @@
 /* ==========================================================================
    Sistema de Chamada de Alunos — CSS único do projeto
+   Tema "Matrix": preto/verde, fonte monoespaçada, brilho neon leve.
    Seções numeradas. Ao adicionar CSS novo, complemente uma seção
    existente ou crie uma nova mantendo a numeração.
    ========================================================================== */
 
 /* ---------- 1. Reset e variáveis ---------- */
 :root {
-    --cor-primaria: #2563eb;
-    --cor-primaria-escura: #1d4ed8;
-    --cor-fundo: #f4f6f9;
-    --cor-cartao: #ffffff;
-    --cor-texto: #1f2937;
-    --cor-texto-suave: #6b7280;
-    --cor-borda: #e2e8f0;
-    --cor-sucesso: #16a34a;
-    --cor-erro: #dc2626;
-    --cor-aviso: #d97706;
-    --raio: 10px;
-    --sombra: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+    --cor-primaria: #00ff41;
+    --cor-primaria-escura: #00cc34;
+    --cor-fundo: #030905;
+    --cor-cartao: rgba(4, 20, 8, 0.82);
+    --cor-cartao-solida: #061a0b;
+    --cor-texto: #59ffa0;
+    --cor-texto-forte: #baffc9;
+    --cor-texto-suave: #3f9a63;
+    --cor-borda: #135522;
+    --cor-sucesso: #00ff41;
+    --cor-erro: #ff4d4d;
+    --cor-aviso: #ffd400;
+    --raio: 5px;
+    --brilho: 0 0 8px rgba(0, 255, 65, 0.35);
+    --brilho-forte: 0 0 14px rgba(0, 255, 65, 0.55);
+    --sombra: 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 255, 65, 0.08) inset;
+    --fonte: "Courier New", ui-monospace, "Cascadia Code", Consolas, Menlo, monospace;
 }
 
 * { box-sizing: border-box; }
 
-body {
-    margin: 0;
-    font-family: "Segoe UI", Roboto, -apple-system, sans-serif;
-    background: var(--cor-fundo);
-    color: var(--cor-texto);
-    line-height: 1.5;
+html, body {
+    overflow-x: hidden; /* nunca deixa nada abrir rolagem lateral / travar a tela */
+    width: 100%;
 }
 
-h1, h2, h3 { line-height: 1.2; }
+body {
+    margin: 0;
+    font-family: var(--fonte);
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    line-height: 1.55;
+    min-height: 100vh;
+    position: relative;
+}
+
+h1, h2, h3 {
+    line-height: 1.25;
+    color: var(--cor-texto-forte);
+    text-shadow: var(--brilho);
+    letter-spacing: 0.5px;
+}
 
 a { color: var(--cor-primaria); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a:hover { text-decoration: underline; text-shadow: var(--brilho); }
 
-/* ---------- 2. Layout geral / topo ---------- */
+code {
+    background: #000;
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-primaria);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.85em;
+}
+
+::selection { background: var(--cor-primaria); color: #000; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: var(--cor-borda); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cor-primaria-escura); }
+
+/* ---------- 2. Chuva digital (canvas de fundo) ---------- */
+#matrix-rain-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Todo o conteúdo real fica acima do canvas de fundo. */
+.topo, .conteudo, .kiosk-topo, .kiosk-alerta, .kiosk-corpo,
+.screen-topo, .screen-corpo, .screen-selecionar-corpo {
+    position: relative;
+    z-index: 1;
+}
+
+/* ---------- 3. Layout geral / topo ---------- */
 .topo {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--cor-cartao);
+    background: var(--cor-cartao-solida);
     padding: 14px 24px;
     border-bottom: 1px solid var(--cor-borda);
     flex-wrap: wrap;
@@ -49,8 +101,9 @@ a:hover { text-decoration: underline; }
 
 .topo-logo {
     font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--cor-texto);
+    font-size: 1.05rem;
+    color: var(--cor-texto-forte);
+    text-shadow: var(--brilho);
 }
 
 .topo-nav {
@@ -62,7 +115,7 @@ a:hover { text-decoration: underline; }
 
 .topo-usuario {
     color: var(--cor-texto-suave);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 .conteudo {
@@ -71,65 +124,94 @@ a:hover { text-decoration: underline; }
     padding: 24px;
 }
 
-/* ---------- 3. Mensagens flash ---------- */
+/* ---------- 4. Mensagens flash ---------- */
 .flash-lista { margin-bottom: 16px; }
 
 .flash {
     padding: 10px 14px;
     border-radius: var(--raio);
     margin-bottom: 8px;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    border: 1px solid;
 }
 
-.flash-sucesso { background: #dcfce7; color: #166534; }
-.flash-erro { background: #fee2e2; color: #991b1b; }
-.flash-aviso { background: #fef3c7; color: #92400e; }
+.flash-sucesso { background: rgba(0, 255, 65, 0.08); color: var(--cor-primaria); border-color: var(--cor-primaria); }
+.flash-erro { background: rgba(255, 77, 77, 0.1); color: var(--cor-erro); border-color: var(--cor-erro); }
+.flash-aviso { background: rgba(255, 212, 0, 0.1); color: var(--cor-aviso); border-color: var(--cor-aviso); }
 
-/* ---------- 4. Formulários e botões ---------- */
+/* ---------- 5. Formulários e botões ---------- */
 .formulario {
     display: flex;
     flex-direction: column;
     gap: 6px;
     max-width: 480px;
+    width: 100%;
     background: var(--cor-cartao);
     padding: 20px;
     border-radius: var(--raio);
+    border: 1px solid var(--cor-borda);
     box-shadow: var(--sombra);
+    backdrop-filter: blur(2px);
 }
 
-.formulario label { font-weight: 600; margin-top: 8px; font-size: 0.9rem; }
+.formulario label { font-weight: 600; margin-top: 8px; font-size: 0.85rem; color: var(--cor-texto-forte); }
 
 input[type="text"], input[type="email"], input[type="password"],
 input[type="number"], input[type="file"], input[type="color"],
 select, textarea {
     padding: 9px 12px;
     border: 1px solid var(--cor-borda);
-    border-radius: 8px;
+    border-radius: var(--raio);
     font-size: 0.95rem;
-    font-family: inherit;
+    font-family: var(--fonte);
+    background: #000804;
+    color: var(--cor-texto-forte);
+    width: 100%;
 }
 
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--cor-primaria);
+    box-shadow: var(--brilho);
+}
+
+input[type="file"] { border-style: dashed; }
+input[type="color"] { padding: 4px; height: 42px; cursor: pointer; }
+
 .checkbox-linha { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+.checkbox-linha input { width: auto; }
 
 .botao {
     display: inline-block;
     padding: 9px 16px;
-    border-radius: 8px;
+    border-radius: var(--raio);
     border: 1px solid var(--cor-borda);
-    background: var(--cor-cartao);
+    background: transparent;
     color: var(--cor-texto);
     cursor: pointer;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
+    font-family: var(--fonte);
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+.botao:hover {
+    border-color: var(--cor-primaria);
+    color: var(--cor-texto-forte);
+    box-shadow: var(--brilho);
     text-decoration: none;
 }
-.botao:hover { background: var(--cor-fundo); text-decoration: none; }
 
 .botao-primario {
     background: var(--cor-primaria);
     border-color: var(--cor-primaria);
-    color: #fff;
+    color: #001a06;
+    font-weight: 700;
 }
-.botao-primario:hover { background: var(--cor-primaria-escura); }
+.botao-primario:hover {
+    background: var(--cor-primaria-escura);
+    box-shadow: var(--brilho-forte);
+    color: #001a06;
+}
 
 .botao-link {
     background: none;
@@ -137,51 +219,72 @@ select, textarea {
     color: var(--cor-primaria);
     cursor: pointer;
     padding: 0;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
+    font-family: var(--fonte);
     text-decoration: underline;
 }
-.botao-link.ativo { font-weight: 700; }
+.botao-link.ativo { font-weight: 700; text-shadow: var(--brilho); }
 .botao-perigo { color: var(--cor-erro); }
 
 .botao-discreto {
-    opacity: 0.35;
+    opacity: 0.4;
     font-size: 1.1rem;
     padding: 4px 8px;
+    color: var(--cor-texto);
 }
-.botao-discreto:hover { opacity: 1; }
+.botao-discreto:hover { opacity: 1; text-shadow: var(--brilho); }
 
-.form-inline { display: inline-flex; align-items: center; gap: 6px; margin: 0 4px 0 0; }
+.form-inline { display: inline-flex; align-items: center; gap: 6px; margin: 0 4px 0 0; flex-wrap: wrap; }
 .form-filtro { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.form-filtro input, .form-filtro select { width: auto; flex: 1 1 200px; }
 
 .input-foto-pequeno { max-width: 130px; font-size: 0.75rem; }
 
-/* ---------- 5. Tabelas ---------- */
+/* ---------- 6. Tabelas ---------- */
+.tabela-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--raio);
+    margin-bottom: 24px;
+    border: 1px solid var(--cor-borda);
+}
+
 .tabela {
     width: 100%;
     border-collapse: collapse;
     background: var(--cor-cartao);
-    border-radius: var(--raio);
-    overflow: hidden;
-    box-shadow: var(--sombra);
-    margin-bottom: 24px;
+    min-width: 560px; /* garante que a tabela role dentro do wrapper em vez de espremer */
 }
 
 .tabela th, .tabela td {
     padding: 10px 14px;
     text-align: left;
     border-bottom: 1px solid var(--cor-borda);
-    font-size: 0.92rem;
+    font-size: 0.88rem;
+    white-space: nowrap;
 }
 
-.tabela th { background: var(--cor-fundo); font-weight: 600; }
+.tabela td:nth-child(1), .tabela th:nth-child(1) { white-space: normal; }
+
+.tabela th {
+    background: #000f04;
+    font-weight: 700;
+    color: var(--cor-texto-forte);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
+.tabela tbody tr:hover { background: rgba(0, 255, 65, 0.05); }
 
 .acoes-tabela { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-.miniatura { width: 36px; height: 36px; object-fit: cover; border-radius: 50%; }
+.miniatura { width: 36px; height: 36px; object-fit: cover; border-radius: 50%; border: 1px solid var(--cor-borda); }
 
 .pastilha-cor {
     display: inline-block;
-    width: 18px; height: 18px;
+    width: 16px; height: 16px;
     border-radius: 50%;
     border: 1px solid var(--cor-borda);
 }
@@ -196,18 +299,20 @@ select, textarea {
 }
 .cabecalho-lista .acoes { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-/* ---------- 6. Login / Home ---------- */
+/* ---------- 7. Login / Home ---------- */
 .tela-login {
     min-height: calc(100vh - 70px);
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 24px;
 }
 
 .cartao-login {
     background: var(--cor-cartao);
     padding: 32px;
     border-radius: var(--raio);
+    border: 1px solid var(--cor-borda);
     box-shadow: var(--sombra);
     width: 100%;
     max-width: 420px;
@@ -215,7 +320,7 @@ select, textarea {
 }
 
 .cartao-login form { display: flex; flex-direction: column; gap: 8px; text-align: left; }
-.cartao-login label { font-weight: 600; font-size: 0.9rem; margin-top: 6px; }
+.cartao-login label { font-weight: 600; font-size: 0.85rem; margin-top: 6px; color: var(--cor-texto-forte); }
 .cartao-login button { margin-top: 14px; }
 
 .cartao-login-acoes {
@@ -225,12 +330,12 @@ select, textarea {
     margin-top: 16px;
 }
 
-.texto-ajuda { color: var(--cor-texto-suave); font-size: 0.85rem; margin-top: 14px; }
+.texto-ajuda { color: var(--cor-texto-suave); font-size: 0.82rem; margin-top: 14px; }
 
-/* ---------- 7. Dashboard (cartões de estatística) ---------- */
+/* ---------- 8. Dashboard (cartões de estatística) ---------- */
 .grade-cartoes {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 16px;
     margin-bottom: 28px;
 }
@@ -238,14 +343,21 @@ select, textarea {
 .cartao-estatistica {
     background: var(--cor-cartao);
     border-radius: var(--raio);
+    border: 1px solid var(--cor-borda);
     box-shadow: var(--sombra);
     padding: 20px;
     text-align: center;
 }
-.cartao-estatistica .numero { display: block; font-size: 2rem; font-weight: 700; color: var(--cor-primaria); }
-.cartao-estatistica .rotulo { color: var(--cor-texto-suave); font-size: 0.85rem; }
+.cartao-estatistica .numero {
+    display: block;
+    font-size: clamp(1.6rem, 6vw, 2rem);
+    font-weight: 700;
+    color: var(--cor-primaria);
+    text-shadow: var(--brilho);
+}
+.cartao-estatistica .rotulo { color: var(--cor-texto-suave); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
 
-/* ---------- 8. Salas (grade) ---------- */
+/* ---------- 9. Salas (grade) ---------- */
 .grade-salas {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -255,22 +367,23 @@ select, textarea {
 
 .cartao-sala {
     background: var(--cor-cartao);
-    border: 2px solid var(--cor-borda);
+    border: 1px solid var(--cor-borda);
     border-radius: var(--raio);
     padding: 16px;
     text-align: center;
     font-weight: 600;
     box-shadow: var(--sombra);
     cursor: pointer;
-    color: var(--cor-texto);
+    color: var(--cor-texto-forte);
+    font-family: var(--fonte);
 }
-.cartao-sala:hover { transform: translateY(-2px); text-decoration: none; }
+.cartao-sala:hover { transform: translateY(-2px); text-decoration: none; box-shadow: var(--brilho-forte); }
 
-.grade-salas-grande { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-.cartao-sala-grande { padding: 28px 16px; font-size: 1.1rem; }
-.cartao-sala-grande img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+.grade-salas-grande { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+.cartao-sala-grande { padding: 28px 16px; font-size: 1.05rem; }
+.cartao-sala-grande img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 10px; }
 
-/* ---------- 9. Kiosk ---------- */
+/* ---------- 10. Kiosk ---------- */
 .tela-kiosk .conteudo { display: none; } /* Kiosk usa layout próprio via conteudo_completo */
 
 .kiosk-topo {
@@ -278,21 +391,22 @@ select, textarea {
     align-items: center;
     justify-content: space-between;
     padding: 16px 24px;
-    background: var(--cor-cartao);
+    background: var(--cor-cartao-solida);
     border-bottom: 1px solid var(--cor-borda);
     flex-wrap: wrap;
     gap: 10px;
 }
-.kiosk-titulo { font-weight: 700; font-size: 1.2rem; }
-.kiosk-topo-acoes { display: flex; align-items: center; gap: 10px; }
+.kiosk-titulo { font-weight: 700; font-size: 1.15rem; color: var(--cor-texto-forte); text-shadow: var(--brilho); }
+.kiosk-topo-acoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 #kiosk-busca { min-width: 220px; }
 
 .kiosk-alerta {
     margin: 12px 24px 0;
     padding: 12px 16px;
     border-radius: var(--raio);
-    background: #fee2e2;
-    color: #991b1b;
+    background: rgba(255, 77, 77, 0.12);
+    border: 1px solid var(--cor-erro);
+    color: var(--cor-erro);
     font-weight: 600;
 }
 
@@ -303,10 +417,6 @@ select, textarea {
     padding: 20px 24px;
 }
 
-@media (max-width: 800px) {
-    .kiosk-corpo { grid-template-columns: 1fr; }
-}
-
 .kiosk-lista { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
 
 .kiosk-cartao-aluno {
@@ -314,46 +424,51 @@ select, textarea {
     align-items: center;
     gap: 14px;
     background: var(--cor-cartao);
+    border: 1px solid var(--cor-borda);
     border-radius: var(--raio);
     box-shadow: var(--sombra);
     padding: 12px 16px;
+    flex-wrap: wrap;
 }
 
 .kiosk-cartao-foto {
     width: 52px; height: 52px;
     border-radius: 50%;
     overflow: hidden;
-    background: var(--cor-fundo);
+    background: #000;
+    border: 1px solid var(--cor-borda);
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
 }
 .kiosk-cartao-foto img { width: 100%; height: 100%; object-fit: cover; }
 .kiosk-cartao-inicial { font-weight: 700; font-size: 1.3rem; color: var(--cor-texto-suave); }
 
-.kiosk-cartao-info { flex: 1; display: flex; flex-direction: column; }
-.kiosk-cartao-info span { color: var(--cor-texto-suave); font-size: 0.85rem; }
+.kiosk-cartao-info { flex: 1 1 140px; display: flex; flex-direction: column; min-width: 0; }
+.kiosk-cartao-info span { color: var(--cor-texto-suave); font-size: 0.82rem; }
 
 .kiosk-vazio { color: var(--cor-texto-suave); padding: 20px 0; }
 
-.kiosk-recentes { }
 .kiosk-cartao-recente {
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: var(--cor-cartao);
+    border: 1px solid var(--cor-borda);
     border-radius: var(--raio);
     box-shadow: var(--sombra);
     padding: 10px 14px;
     margin-top: 10px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
-.kiosk-cartao-recente div { display: flex; flex-direction: column; }
-.kiosk-cartao-recente span { color: var(--cor-texto-suave); font-size: 0.8rem; }
+.kiosk-cartao-recente div { display: flex; flex-direction: column; min-width: 0; }
+.kiosk-cartao-recente span { color: var(--cor-texto-suave); font-size: 0.78rem; }
 
-/* ---------- 10. Screen (TV) ---------- */
+/* ---------- 11. Screen (TV) ---------- */
 .tela-screen .conteudo { display: none; }
 .tela-screen {
-    background: #0f172a;
-    color: #fff;
+    background: #000;
+    color: var(--cor-texto-forte);
     min-height: 100vh;
 }
 
@@ -362,7 +477,7 @@ select, textarea {
     /* Corrige rolagem travada em telas pequenas: a tela de seleção de
        sala precisa rolar em navegadores de celular, mesmo a TV usando
        position: fixed de propósito. */
-    .screen-selecionar { position: static; overflow: auto; height: auto; }
+    .screen-selecionar { position: static; overflow: visible; height: auto; }
 }
 
 .screen-selecionar-corpo {
@@ -371,83 +486,118 @@ select, textarea {
     padding: 40px 24px;
     text-align: center;
 }
-.screen-selecionar-corpo h1 { font-size: 2rem; }
-.screen-selecionar-corpo .botao { margin-top: 24px; color: #fff; border-color: #475569; }
+.screen-selecionar-corpo h1 { font-size: clamp(1.4rem, 5vw, 2rem); }
+.screen-selecionar-corpo .botao { margin-top: 24px; }
 
 .screen-topo {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 18px 30px;
-    background: #1e293b;
-    font-size: 1.4rem;
+    background: var(--cor-cartao-solida);
+    border-bottom: 1px solid var(--cor-borda);
+    font-size: clamp(1.05rem, 3vw, 1.4rem);
     font-weight: 700;
+    color: var(--cor-texto-forte);
+    text-shadow: var(--brilho);
+    flex-wrap: wrap;
+    gap: 8px;
 }
-.screen-trocar-sala { color: #fff; opacity: 0.5; font-size: 0.9rem; }
+.screen-trocar-sala { color: var(--cor-texto); opacity: 0.5; font-size: 0.85rem; text-shadow: none; }
 .screen-trocar-sala:hover { opacity: 1; }
 
 .screen-corpo {
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 240px 1fr;
     min-height: calc(100vh - 68px);
 }
 @media (max-width: 700px) {
     .screen-corpo { grid-template-columns: 1fr; }
 }
 
-.screen-lateral { background: #1e293b; padding: 20px; }
-.screen-lateral h3 { margin-top: 0; opacity: 0.7; font-size: 0.9rem; text-transform: uppercase; }
+.screen-lateral { background: var(--cor-cartao-solida); padding: 20px; border-right: 1px solid var(--cor-borda); }
+.screen-lateral h3 { margin-top: 0; opacity: 0.7; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
 .screen-recente-item {
     padding: 10px 0;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid var(--cor-borda);
     display: flex;
     flex-direction: column;
 }
-.screen-recente-item span { opacity: 0.6; font-size: 0.8rem; }
+.screen-recente-item span { opacity: 0.6; font-size: 0.78rem; }
 
 .screen-palco {
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 40px;
+    padding: 40px 20px;
 }
 
-.screen-espera { opacity: 0.5; font-size: 1.5rem; }
+.screen-espera { opacity: 0.45; font-size: clamp(1.1rem, 4vw, 1.5rem); }
 
-.screen-chamada { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.screen-chamada { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
 .screen-chamada-foto {
-    width: 220px; height: 220px;
+    width: clamp(140px, 30vw, 220px);
+    height: clamp(140px, 30vw, 220px);
     border-radius: 50%;
-    background: #334155;
+    background: #001a06;
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
-    border: 6px solid #2563eb;
+    border: 5px solid var(--cor-primaria);
+    box-shadow: var(--brilho-forte);
 }
 .screen-chamada-foto img { width: 100%; height: 100%; object-fit: cover; }
-.screen-foto-inicial { font-size: 5rem; font-weight: 700; }
+.screen-foto-inicial { font-size: clamp(3rem, 10vw, 5rem); font-weight: 700; color: var(--cor-primaria); }
 
-#screen-chamada-nome { font-size: 3rem; margin: 6px 0 0; }
-#screen-chamada-turma { opacity: 0.7; font-size: 1.3rem; margin: 0; }
-.screen-chamada-destino { font-size: 1.6rem; margin-top: 10px; }
+#screen-chamada-nome {
+    font-size: clamp(1.8rem, 7vw, 3rem);
+    margin: 6px 0 0;
+    word-break: break-word;
+}
+#screen-chamada-turma { opacity: 0.7; font-size: clamp(1rem, 3vw, 1.3rem); margin: 0; }
+.screen-chamada-destino { font-size: clamp(1.1rem, 4vw, 1.6rem); margin-top: 10px; }
+.screen-chamada-destino strong { color: var(--cor-primaria); text-shadow: var(--brilho); }
 
-/* ---------- 11. Presença ---------- */
+/* ---------- 12. Presença ---------- */
 .grade-presenca {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 12px;
 }
 
 .cartao-presenca {
     background: var(--cor-cartao);
     border-radius: var(--raio);
+    border: 1px solid var(--cor-borda);
     box-shadow: var(--sombra);
     padding: 14px 16px;
     display: flex;
     flex-direction: column;
     gap: 4px;
-    border-left: 4px solid var(--cor-sucesso);
+    border-left: 3px solid var(--cor-sucesso);
 }
-.cartao-presenca span { color: var(--cor-texto-suave); font-size: 0.85rem; }
+.cartao-presenca span { color: var(--cor-texto-suave); font-size: 0.82rem; }
 .cartao-presenca.presenca-falta { border-left-color: var(--cor-erro); }
-.cartao-presenca-acoes { display: flex; gap: 14px; margin-top: 8px; }
+.cartao-presenca-acoes { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+
+/* ---------- 13. Responsividade geral ---------- */
+@media (max-width: 640px) {
+    .conteudo { padding: 16px; }
+    .topo { padding: 12px 16px; }
+    .topo-nav { gap: 10px; font-size: 0.85rem; }
+
+    .kiosk-topo { padding: 12px 16px; }
+    .kiosk-topo-acoes { width: 100%; }
+    #kiosk-busca { width: 100%; min-width: 0; flex: 1 1 100%; }
+
+    .kiosk-corpo { grid-template-columns: 1fr; padding: 16px; }
+
+    .cabecalho-lista { flex-direction: column; align-items: stretch; }
+    .cabecalho-lista .acoes { flex-direction: column; align-items: stretch; }
+    .cabecalho-lista .acoes .botao { text-align: center; }
+
+    .formulario { padding: 16px; }
+
+    .screen-topo { padding: 14px 16px; }
+    .screen-palco { padding: 24px 12px; }
+}

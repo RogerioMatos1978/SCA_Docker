@@ -8,16 +8,16 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="proximo" value="{{ proximo or '' }}">
 
-            <label for="email">E-mail</label>
-            <input type="email" id="email" name="email" required autofocus>
+            <label for="usuario">Usuário</label>
+            <input type="text" id="usuario" name="usuario" required autofocus autocomplete="username">
 
             <label for="senha">Senha</label>
-            <input type="password" id="senha" name="senha" required>
+            <input type="password" id="senha" name="senha" required autocomplete="current-password">
 
             <button type="submit" class="botao botao-primario">Entrar</button>
         </form>
         <p class="texto-ajuda">
-            Primeiro acesso? Use <code>admin@local</code> / <code>admin123</code>
+            Primeiro acesso? Use <code>admin</code> / <code>admin123</code>
             (veja o log do container) e troque a senha em Usuários.
         </p>
     </div>

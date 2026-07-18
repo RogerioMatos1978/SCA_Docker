@@ -23,7 +23,7 @@ TABLES_SQL = """
 CREATE TABLE IF NOT EXISTS usuarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
-    email TEXT NOT NULL UNIQUE,
+    usuario TEXT NOT NULL UNIQUE,
     senha_hash TEXT NOT NULL,
     perfil TEXT NOT NULL DEFAULT 'operador'
         CHECK (perfil IN ('administrador', 'supervisor', 'operador')),
@@ -88,6 +88,13 @@ CREATE TABLE IF NOT EXISTS configuracoes (
 # Colunas adicionadas depois da v1 do schema. Formato:
 # (tabela, nome_da_coluna, definicao_sql_da_coluna)
 _COLUNAS_NOVAS = [
+    # v1 do sistema fazia login por e-mail (coluna "email"). A coluna
+    # "usuario" já vem em TABLES_SQL para instalações novas; esta
+    # entrada garante que um banco de uma instalação antiga (criado
+    # antes dessa mudança) também ganhe a coluna "usuario" sem perder
+    # dados — o backfill (copiar email -> usuario) roda logo depois,
+    # em _migrar_login_email_para_usuario().
+    ("usuarios", "usuario", "TEXT"),
     # Exemplo de como adicionar uma coluna nova no futuro sem quebrar
     # bancos já existentes:
     # ("alunos", "observacoes", "TEXT"),
@@ -126,6 +133,34 @@ def _migrar_colunas_novas(conn):
             pass
 
 
+def _migrar_login_email_para_usuario(conn):
+    """Instalações antigas faziam login por e-mail (coluna 'email').
+    Se essa coluna ainda existir (banco antigo), copia o valor para a
+    coluna 'usuario' nos registros que ainda não têm 'usuario'
+    preenchido — assim ninguém perde o acesso na troca de e-mail para
+    usuário como identificador de login."""
+    colunas = [linha["name"] for linha in conn.execute("PRAGMA table_info(usuarios)").fetchall()]
+    if "email" not in colunas:
+        return  # instalação nova: essa coluna nunca existiu
+    conn.execute(
+        "UPDATE usuarios SET usuario = email WHERE usuario IS NULL AND email IS NOT NULL"
+    )
+
+
+def _garantir_indice_unico_usuario(conn):
+    """Cria o índice único de 'usuario' à parte (não dentro do script
+    de INDEXES_SQL) para não travar a inicialização inteira caso uma
+    instalação antiga migrada tenha, por algum motivo raro, valores
+    duplicados — nesse caso só logamos e seguimos, em vez de impedir o
+    sistema de subir."""
+    try:
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_usuarios_usuario ON usuarios(usuario)"
+        )
+    except sqlite3.IntegrityError:
+        pass
+
+
 def _garantir_configuracoes_padrao(conn):
     for chave, valor in _CONFIGURACOES_PADRAO.items():
         conn.execute(
@@ -142,7 +177,9 @@ def init_db(database_path):
     try:
         conn.executescript(TABLES_SQL)
         _migrar_colunas_novas(conn)
+        _migrar_login_email_para_usuario(conn)
         conn.executescript(INDEXES_SQL)
+        _garantir_indice_unico_usuario(conn)
         _garantir_configuracoes_padrao(conn)
         conn.commit()
     finally:

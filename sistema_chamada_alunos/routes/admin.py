@@ -271,15 +271,15 @@ def usuarios():
     try:
         if request.method == "POST":
             nome = request.form.get("nome", "").strip()
-            email = request.form.get("email", "").strip().lower()
+            login_usuario = request.form.get("usuario", "").strip().lower()
             senha = request.form.get("senha", "")
             perfil = request.form.get("perfil", "operador")
-            if not nome or not email or len(senha) < 6:
-                flash("Preencha nome, e-mail e uma senha com pelo menos 6 caracteres.", "erro")
-            elif services.buscar_usuario_por_email(conn, email):
-                flash("Já existe um usuário com esse e-mail.", "erro")
+            if not nome or not login_usuario or len(senha) < 6:
+                flash("Preencha nome, usuário e uma senha com pelo menos 6 caracteres.", "erro")
+            elif services.buscar_usuario_por_login(conn, login_usuario):
+                flash("Já existe um usuário com esse nome de usuário.", "erro")
             else:
-                services.criar_usuario(conn, nome, email, senha, perfil)
+                services.criar_usuario(conn, nome, login_usuario, senha, perfil)
                 flash("Usuário criado com sucesso.", "sucesso")
             return redirect(url_for("admin.usuarios"))
 
