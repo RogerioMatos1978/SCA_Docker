@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}Gestão do Kiosk{% endblock %}
+{% block conteudo %}
+<div class="cabecalho-lista">
+    <h1>Gestão do dia a dia</h1>
+    <a class="botao" href="{{ url_for('kiosk.fila') }}">Voltar ao terminal</a>
+</div>
+
+<form method="GET" class="form-filtro">
+    <input type="text" name="busca" placeholder="Buscar por nome" value="{{ busca }}">
+    <button type="submit" class="botao">Filtrar</button>
+</form>
+
+<p class="texto-ajuda">
+    Aqui qualquer usuário logado pode ativar/desativar aluno, trocar foto ou
+    devolver um aluno chamado por engano para a fila. Cadastro completo fica em
+    <a href="{{ url_for('admin.alunos') }}">Alunos</a> (admin/supervisor).
+</p>
+
+<table class="tabela">
+    <thead>
+        <tr><th>Foto</th><th>Nome</th><th>Sala</th><th>Status</th><th>Ativo</th><th>Ações</th></tr>
+    </thead>
+    <tbody>
+        {% for aluno in alunos %}
+        <tr>
+            <td>
+                {% if aluno['foto'] %}
+                <img class="miniatura" src="{{ url_for('admin.servir_foto_aluno', nome_arquivo=aluno['foto']) }}" alt="">
+                {% else %}—{% endif %}
+            </td>
+            <td>{{ aluno['nome'] }}</td>
+            <td>{{ aluno['sala_nome'] or '—' }}</td>
+            <td>{{ aluno['status'] }}</td>
+            <td>{{ 'Sim' if aluno['ativo'] else 'Não' }}</td>
+            <td class="acoes-tabela">
+                <form method="POST" action="{{ url_for('admin.alunos_alternar_ativo', aluno_id=aluno['id']) }}" class="form-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="botao-link">{{ 'Desativar' if aluno['ativo'] else 'Ativar' }}</button>
+                </form>
+                {% if aluno['status'] == 'chamado' %}
+                <form method="POST" action="{{ url_for('kiosk.gestao_resetar_status', aluno_id=aluno['id']) }}" class="form-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="botao-link">Voltar p/ fila</button>
+                </form>
+                {% endif %}
+                <form method="POST" action="{{ url_for('kiosk.gestao_aluno_foto', aluno_id=aluno['id']) }}" enctype="multipart/form-data" class="form-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="file" name="foto" accept="image/*" required class="input-foto-pequeno">
+                    <button type="submit" class="botao-link">Trocar foto</button>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">Nenhum aluno encontrado.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

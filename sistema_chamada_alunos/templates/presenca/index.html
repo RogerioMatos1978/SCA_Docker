@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block titulo %}Presença{% endblock %}
+{% block conteudo %}
+<h1>Presença de hoje</h1>
+<p class="texto-ajuda">
+    Quem não tiver marcação aqui é considerado presente por padrão —
+    só é preciso marcar quem faltou. Um aluno marcado como falta some
+    da fila do Kiosk automaticamente.
+</p>
+
+<form method="GET" class="form-filtro">
+    <select name="sala_id" onchange="this.form.submit()">
+        <option value="">Todas as salas</option>
+        {% for sala in salas %}
+        <option value="{{ sala['id'] }}" {{ 'selected' if sala_id == sala['id'] }}>{{ sala['nome'] }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+<div class="grade-presenca">
+    {% for aluno in alunos %}
+    <div class="cartao-presenca {{ 'presenca-falta' if aluno.presenca_hoje == 'faltante' }}">
+        <strong>{{ aluno.nome }}</strong>
+        <span>{{ aluno.sala_nome or '—' }}</span>
+        <div class="cartao-presenca-acoes">
+            <form method="POST" action="{{ url_for('presenca.marcar') }}" class="form-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="aluno_id" value="{{ aluno.id }}">
+                <input type="hidden" name="status" value="presente">
+                <button type="submit" class="botao-link {{ 'ativo' if aluno.presenca_hoje == 'presente' }}">Presente</button>
+            </form>
+            <form method="POST" action="{{ url_for('presenca.marcar') }}" class="form-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="aluno_id" value="{{ aluno.id }}">
+                <input type="hidden" name="status" value="faltante">
+                <button type="submit" class="botao-link {{ 'ativo' if aluno.presenca_hoje == 'faltante' }}">Faltou</button>
+            </form>
+        </div>
+    </div>
+    {% else %}
+    <p>Nenhum aluno ativo encontrado.</p>
+    {% endfor %}
+</div>
+{% endblock %}

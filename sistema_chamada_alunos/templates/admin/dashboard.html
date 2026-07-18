@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block titulo %}Painel{% endblock %}
+{% block conteudo %}
+<h1>Painel</h1>
+
+<div class="grade-cartoes">
+    <div class="cartao-estatistica">
+        <span class="numero">{{ stats.total_alunos }}</span>
+        <span class="rotulo">Alunos ativos</span>
+    </div>
+    <div class="cartao-estatistica">
+        <span class="numero">{{ stats.aguardando }}</span>
+        <span class="rotulo">Aguardando chamada</span>
+    </div>
+    <div class="cartao-estatistica">
+        <span class="numero">{{ stats.chamados_hoje }}</span>
+        <span class="rotulo">Chamados hoje</span>
+    </div>
+    <div class="cartao-estatistica">
+        <span class="numero">{{ stats.total_salas }}</span>
+        <span class="rotulo">Salas ativas</span>
+    </div>
+</div>
+
+<h2>Últimas chamadas</h2>
+<table class="tabela">
+    <thead>
+        <tr><th>Aluno</th><th>Sala</th><th>Tipo</th><th>Quando</th></tr>
+    </thead>
+    <tbody>
+        {% for c in ultimas %}
+        <tr>
+            <td>{{ c['aluno_nome'] }}</td>
+            <td>{{ c['sala_nome'] or '—' }}</td>
+            <td>{{ c['tipo'] }}</td>
+            <td>{{ c['criado_em'] }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">Nenhuma chamada ainda.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<h2>Salas</h2>
+<div class="grade-salas">
+    {% for sala in salas %}
+    <a href="{{ url_for('screen.tela_sala', sala_id=sala['id']) }}" target="_blank"
+       class="cartao-sala" style="border-color: {{ sala['cor'] }};">
+        {{ sala['nome'] }}
+    </a>
+    {% else %}
+    <p>Nenhuma sala cadastrada ainda. <a href="{{ url_for('admin.salas_nova') }}">Cadastrar sala</a></p>
+    {% endfor %}
+</div>
+{% endblock %}

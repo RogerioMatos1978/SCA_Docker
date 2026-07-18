@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar aluno' if aluno else 'Novo aluno' }}{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Editar aluno' if aluno else 'Novo aluno' }}</h1>
+
+<form method="POST" enctype="multipart/form-data" class="formulario">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label for="nome">Nome completo</label>
+    <input type="text" id="nome" name="nome" required value="{{ aluno['nome'] if aluno else '' }}">
+
+    <label for="turma">Turma</label>
+    <input type="text" id="turma" name="turma" value="{{ aluno['turma'] if aluno else '' }}">
+
+    <label for="sala_id">Sala</label>
+    <select id="sala_id" name="sala_id">
+        <option value="">— Sem sala —</option>
+        {% for sala in salas %}
+        <option value="{{ sala['id'] }}" {{ 'selected' if aluno and aluno['sala_id'] == sala['id'] }}>{{ sala['nome'] }}</option>
+        {% endfor %}
+    </select>
+
+    <label for="codigo">Código / matrícula (opcional, usado na importação CSV)</label>
+    <input type="text" id="codigo" name="codigo" value="{{ aluno['codigo'] if aluno else '' }}">
+
+    <label class="checkbox-linha">
+        <input type="checkbox" name="prioridade" {{ 'checked' if aluno and aluno['prioridade'] }}>
+        Prioridade na fila
+    </label>
+
+    <label for="foto">Foto (opcional)</label>
+    <input type="file" id="foto" name="foto" accept="image/*">
+
+    <button type="submit" class="botao botao-primario">Salvar</button>
+    <a href="{{ url_for('admin.alunos') }}" class="botao">Cancelar</a>
+</form>
+{% endblock %}

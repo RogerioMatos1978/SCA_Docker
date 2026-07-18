@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}Início — Sistema de Chamada de Alunos{% endblock %}
+{% block conteudo %}
+<div class="tela-login">
+    <div class="cartao-login">
+        <h1>Sistema de Chamada de Alunos</h1>
+        {% if usuario %}
+            <p>Olá, <strong>{{ usuario['nome'] }}</strong>. O que deseja fazer?</p>
+            <div class="cartao-login-acoes">
+                <a class="botao botao-primario" href="{{ url_for('admin.dashboard') }}">Ir para o Painel</a>
+                <a class="botao" href="{{ url_for('kiosk.fila') }}">Abrir Kiosk</a>
+                <a class="botao" href="{{ url_for('screen.selecionar') }}">Abrir TV</a>
+            </div>
+        {% else %}
+            <p>Faça login para gerenciar salas, alunos e presença.</p>
+            <div class="cartao-login-acoes">
+                <a class="botao botao-primario" href="{{ url_for('auth.login') }}">Entrar</a>
+                <a class="botao" href="{{ url_for('kiosk.fila') }}">Abrir Kiosk (terminal público)</a>
+                <a class="botao" href="{{ url_for('screen.selecionar') }}">Abrir TV (painel público)</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

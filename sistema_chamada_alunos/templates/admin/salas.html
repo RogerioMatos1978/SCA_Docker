@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block titulo %}Salas{% endblock %}
+{% block conteudo %}
+<div class="cabecalho-lista">
+    <h1>Salas</h1>
+    {% if session.get('usuario_perfil') in ('administrador', 'supervisor') %}
+    <div class="acoes">
+        <a class="botao botao-primario" href="{{ url_for('admin.salas_nova') }}">+ Nova sala</a>
+        <form method="POST" action="{{ url_for('admin.salas_importar') }}" enctype="multipart/form-data" class="form-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="file" name="arquivo_csv" accept=".csv" required>
+            <button type="submit" class="botao">Importar CSV</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<table class="tabela">
+    <thead>
+        <tr><th>Nome</th><th>Cor</th><th>Ordem</th><th>Ativa</th><th>TV da sala</th><th>Ações</th></tr>
+    </thead>
+    <tbody>
+        {% for sala in salas %}
+        <tr>
+            <td>{{ sala['nome'] }}</td>
+            <td><span class="pastilha-cor" style="background: {{ sala['cor'] }};"></span></td>
+            <td>{{ sala['ordem'] }}</td>
+            <td>{{ 'Sim' if sala['ativa'] else 'Não' }}</td>
+            <td><a href="{{ url_for('screen.tela_sala', sala_id=sala['id']) }}" target="_blank">Abrir TV</a></td>
+            <td>
+                {% if session.get('usuario_perfil') in ('administrador', 'supervisor') %}
+                <a href="{{ url_for('admin.salas_editar', sala_id=sala['id']) }}">Editar</a>
+                <form method="POST" action="{{ url_for('admin.salas_excluir', sala_id=sala['id']) }}" class="form-inline" onsubmit="return confirm('Excluir esta sala?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="botao-link botao-perigo">Excluir</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6">Nenhuma sala cadastrada.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

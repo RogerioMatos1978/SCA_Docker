@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block titulo %}TV — {{ sala['nome'] if sala else 'Geral' }}{% endblock %}
+{% block body_class %}tela-screen{% endblock %}
+
+{% block conteudo_completo %}
+<div class="screen-topo" {% if sala %}style="background: {{ sala['cor'] }};"{% endif %}>
+    <span>{{ sala['nome'] if sala else 'TV Geral' }}</span>
+    <a href="{{ url_for('screen.selecionar') }}" class="botao-discreto screen-trocar-sala">Trocar sala</a>
+</div>
+
+<div class="screen-corpo">
+    <aside class="screen-lateral">
+        <h3>Últimos chamados</h3>
+        <div id="screen-lista-recentes">
+            {% for c in recentes %}
+            <div class="screen-recente-item">
+                <strong>{{ c['aluno_nome'] }}</strong>
+                <span>{{ c['sala_nome'] or '' }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </aside>
+
+    <section class="screen-palco" id="screen-palco">
+        <div class="screen-espera">
+            <p>Aguardando chamada...</p>
+        </div>
+    </section>
+</div>
+
+<template id="screen-template-chamada">
+    <div class="screen-chamada">
+        <div class="screen-chamada-foto">
+            <img id="screen-foto-img" src="" alt="">
+            <span id="screen-foto-inicial" class="screen-foto-inicial"></span>
+        </div>
+        <h1 id="screen-chamada-nome"></h1>
+        <p id="screen-chamada-turma"></p>
+        <p class="screen-chamada-destino">Dirija-se a: <strong id="screen-chamada-destino"></strong></p>
+    </div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    window.CONFIG_SCREEN = {
+        salaNome: {{ (sala['nome'] if sala else None) | tojson }},
+        destinoChamada: {{ destino_chamada | tojson }},
+        urlFotoBase: "{{ url_for('admin.servir_foto_aluno', nome_arquivo='__ARQUIVO__') }}"
+    };
+</script>
+<script src="{{ url_for('static', filename='js/screen.js') }}"></script>
+{% endblock %}

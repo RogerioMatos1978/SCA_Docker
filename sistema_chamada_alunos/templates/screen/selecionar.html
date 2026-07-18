@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}TV — Escolher sala{% endblock %}
+{% block body_class %}tela-screen screen-selecionar{% endblock %}
+
+{% block conteudo_completo %}
+<div class="screen-selecionar-corpo">
+    <h1>Qual sala é esta TV?</h1>
+    <p>Escolha uma vez — da próxima vez esta TV abre direto na sala escolhida.</p>
+
+    <div class="grade-salas grade-salas-grande">
+        {% for sala in salas %}
+        <button class="cartao-sala cartao-sala-grande botao-escolher-sala"
+                style="border-color: {{ sala['cor'] }};"
+                data-id="{{ sala['id'] }}" data-nome="{{ sala['nome'] }}">
+            {% if sala['foto'] %}
+            <img src="{{ url_for('admin.servir_foto_sala', nome_arquivo=sala['foto']) }}" alt="">
+            {% endif %}
+            <span>{{ sala['nome'] }}</span>
+        </button>
+        {% else %}
+        <p>Nenhuma sala cadastrada ainda.</p>
+        {% endfor %}
+    </div>
+
+    <a href="{{ url_for('screen.geral') }}" class="botao">Usar como TV geral (mostra chamadas de todas as salas)</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/screen_selecionar.js') }}"></script>
+{% endblock %}

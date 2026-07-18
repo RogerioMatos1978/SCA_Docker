@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.git/
+.gitignore
+database/alunos.db
+static/fotos/*
+!static/fotos/.gitkeep
+static/fotos_salas/*
+!static/fotos_salas/.gitkeep
+static/uploads/*
+!static/uploads/.gitkeep
+backups/*
+!backups/.gitkeep
+logs/*
+!logs/.gitkeep
+.env

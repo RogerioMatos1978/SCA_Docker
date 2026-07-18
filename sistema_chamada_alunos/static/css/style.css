@@ -1,0 +1,453 @@
+/* ==========================================================================
+   Sistema de Chamada de Alunos — CSS único do projeto
+   Seções numeradas. Ao adicionar CSS novo, complemente uma seção
+   existente ou crie uma nova mantendo a numeração.
+   ========================================================================== */
+
+/* ---------- 1. Reset e variáveis ---------- */
+:root {
+    --cor-primaria: #2563eb;
+    --cor-primaria-escura: #1d4ed8;
+    --cor-fundo: #f4f6f9;
+    --cor-cartao: #ffffff;
+    --cor-texto: #1f2937;
+    --cor-texto-suave: #6b7280;
+    --cor-borda: #e2e8f0;
+    --cor-sucesso: #16a34a;
+    --cor-erro: #dc2626;
+    --cor-aviso: #d97706;
+    --raio: 10px;
+    --sombra: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", Roboto, -apple-system, sans-serif;
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    line-height: 1.5;
+}
+
+h1, h2, h3 { line-height: 1.2; }
+
+a { color: var(--cor-primaria); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ---------- 2. Layout geral / topo ---------- */
+.topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--cor-cartao);
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--cor-borda);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.topo-logo {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: var(--cor-texto);
+}
+
+.topo-nav {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.topo-usuario {
+    color: var(--cor-texto-suave);
+    font-size: 0.9rem;
+}
+
+.conteudo {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+/* ---------- 3. Mensagens flash ---------- */
+.flash-lista { margin-bottom: 16px; }
+
+.flash {
+    padding: 10px 14px;
+    border-radius: var(--raio);
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.flash-sucesso { background: #dcfce7; color: #166534; }
+.flash-erro { background: #fee2e2; color: #991b1b; }
+.flash-aviso { background: #fef3c7; color: #92400e; }
+
+/* ---------- 4. Formulários e botões ---------- */
+.formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 480px;
+    background: var(--cor-cartao);
+    padding: 20px;
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+}
+
+.formulario label { font-weight: 600; margin-top: 8px; font-size: 0.9rem; }
+
+input[type="text"], input[type="email"], input[type="password"],
+input[type="number"], input[type="file"], input[type="color"],
+select, textarea {
+    padding: 9px 12px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+}
+
+.checkbox-linha { display: flex; align-items: center; gap: 8px; font-weight: 500; }
+
+.botao {
+    display: inline-block;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--cor-borda);
+    background: var(--cor-cartao);
+    color: var(--cor-texto);
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+.botao:hover { background: var(--cor-fundo); text-decoration: none; }
+
+.botao-primario {
+    background: var(--cor-primaria);
+    border-color: var(--cor-primaria);
+    color: #fff;
+}
+.botao-primario:hover { background: var(--cor-primaria-escura); }
+
+.botao-link {
+    background: none;
+    border: none;
+    color: var(--cor-primaria);
+    cursor: pointer;
+    padding: 0;
+    font-size: 0.9rem;
+    text-decoration: underline;
+}
+.botao-link.ativo { font-weight: 700; }
+.botao-perigo { color: var(--cor-erro); }
+
+.botao-discreto {
+    opacity: 0.35;
+    font-size: 1.1rem;
+    padding: 4px 8px;
+}
+.botao-discreto:hover { opacity: 1; }
+
+.form-inline { display: inline-flex; align-items: center; gap: 6px; margin: 0 4px 0 0; }
+.form-filtro { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+
+.input-foto-pequeno { max-width: 130px; font-size: 0.75rem; }
+
+/* ---------- 5. Tabelas ---------- */
+.tabela {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--cor-cartao);
+    border-radius: var(--raio);
+    overflow: hidden;
+    box-shadow: var(--sombra);
+    margin-bottom: 24px;
+}
+
+.tabela th, .tabela td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--cor-borda);
+    font-size: 0.92rem;
+}
+
+.tabela th { background: var(--cor-fundo); font-weight: 600; }
+
+.acoes-tabela { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+.miniatura { width: 36px; height: 36px; object-fit: cover; border-radius: 50%; }
+
+.pastilha-cor {
+    display: inline-block;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 1px solid var(--cor-borda);
+}
+
+.cabecalho-lista {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.cabecalho-lista .acoes { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+/* ---------- 6. Login / Home ---------- */
+.tela-login {
+    min-height: calc(100vh - 70px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cartao-login {
+    background: var(--cor-cartao);
+    padding: 32px;
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+}
+
+.cartao-login form { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+.cartao-login label { font-weight: 600; font-size: 0.9rem; margin-top: 6px; }
+.cartao-login button { margin-top: 14px; }
+
+.cartao-login-acoes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.texto-ajuda { color: var(--cor-texto-suave); font-size: 0.85rem; margin-top: 14px; }
+
+/* ---------- 7. Dashboard (cartões de estatística) ---------- */
+.grade-cartoes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+}
+
+.cartao-estatistica {
+    background: var(--cor-cartao);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    padding: 20px;
+    text-align: center;
+}
+.cartao-estatistica .numero { display: block; font-size: 2rem; font-weight: 700; color: var(--cor-primaria); }
+.cartao-estatistica .rotulo { color: var(--cor-texto-suave); font-size: 0.85rem; }
+
+/* ---------- 8. Salas (grade) ---------- */
+.grade-salas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+.cartao-sala {
+    background: var(--cor-cartao);
+    border: 2px solid var(--cor-borda);
+    border-radius: var(--raio);
+    padding: 16px;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: var(--sombra);
+    cursor: pointer;
+    color: var(--cor-texto);
+}
+.cartao-sala:hover { transform: translateY(-2px); text-decoration: none; }
+
+.grade-salas-grande { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+.cartao-sala-grande { padding: 28px 16px; font-size: 1.1rem; }
+.cartao-sala-grande img { width: 100%; height: 100px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+
+/* ---------- 9. Kiosk ---------- */
+.tela-kiosk .conteudo { display: none; } /* Kiosk usa layout próprio via conteudo_completo */
+
+.kiosk-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: var(--cor-cartao);
+    border-bottom: 1px solid var(--cor-borda);
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.kiosk-titulo { font-weight: 700; font-size: 1.2rem; }
+.kiosk-topo-acoes { display: flex; align-items: center; gap: 10px; }
+#kiosk-busca { min-width: 220px; }
+
+.kiosk-alerta {
+    margin: 12px 24px 0;
+    padding: 12px 16px;
+    border-radius: var(--raio);
+    background: #fee2e2;
+    color: #991b1b;
+    font-weight: 600;
+}
+
+.kiosk-corpo {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+    padding: 20px 24px;
+}
+
+@media (max-width: 800px) {
+    .kiosk-corpo { grid-template-columns: 1fr; }
+}
+
+.kiosk-lista { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+
+.kiosk-cartao-aluno {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--cor-cartao);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    padding: 12px 16px;
+}
+
+.kiosk-cartao-foto {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--cor-fundo);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.kiosk-cartao-foto img { width: 100%; height: 100%; object-fit: cover; }
+.kiosk-cartao-inicial { font-weight: 700; font-size: 1.3rem; color: var(--cor-texto-suave); }
+
+.kiosk-cartao-info { flex: 1; display: flex; flex-direction: column; }
+.kiosk-cartao-info span { color: var(--cor-texto-suave); font-size: 0.85rem; }
+
+.kiosk-vazio { color: var(--cor-texto-suave); padding: 20px 0; }
+
+.kiosk-recentes { }
+.kiosk-cartao-recente {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--cor-cartao);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    padding: 10px 14px;
+    margin-top: 10px;
+}
+.kiosk-cartao-recente div { display: flex; flex-direction: column; }
+.kiosk-cartao-recente span { color: var(--cor-texto-suave); font-size: 0.8rem; }
+
+/* ---------- 10. Screen (TV) ---------- */
+.tela-screen .conteudo { display: none; }
+.tela-screen {
+    background: #0f172a;
+    color: #fff;
+    min-height: 100vh;
+}
+
+.screen-selecionar { position: fixed; inset: 0; overflow: hidden; }
+@media (max-width: 700px), (max-height: 600px) {
+    /* Corrige rolagem travada em telas pequenas: a tela de seleção de
+       sala precisa rolar em navegadores de celular, mesmo a TV usando
+       position: fixed de propósito. */
+    .screen-selecionar { position: static; overflow: auto; height: auto; }
+}
+
+.screen-selecionar-corpo {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px;
+    text-align: center;
+}
+.screen-selecionar-corpo h1 { font-size: 2rem; }
+.screen-selecionar-corpo .botao { margin-top: 24px; color: #fff; border-color: #475569; }
+
+.screen-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 30px;
+    background: #1e293b;
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+.screen-trocar-sala { color: #fff; opacity: 0.5; font-size: 0.9rem; }
+.screen-trocar-sala:hover { opacity: 1; }
+
+.screen-corpo {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 68px);
+}
+@media (max-width: 700px) {
+    .screen-corpo { grid-template-columns: 1fr; }
+}
+
+.screen-lateral { background: #1e293b; padding: 20px; }
+.screen-lateral h3 { margin-top: 0; opacity: 0.7; font-size: 0.9rem; text-transform: uppercase; }
+.screen-recente-item {
+    padding: 10px 0;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    flex-direction: column;
+}
+.screen-recente-item span { opacity: 0.6; font-size: 0.8rem; }
+
+.screen-palco {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+}
+
+.screen-espera { opacity: 0.5; font-size: 1.5rem; }
+
+.screen-chamada { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.screen-chamada-foto {
+    width: 220px; height: 220px;
+    border-radius: 50%;
+    background: #334155;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    border: 6px solid #2563eb;
+}
+.screen-chamada-foto img { width: 100%; height: 100%; object-fit: cover; }
+.screen-foto-inicial { font-size: 5rem; font-weight: 700; }
+
+#screen-chamada-nome { font-size: 3rem; margin: 6px 0 0; }
+#screen-chamada-turma { opacity: 0.7; font-size: 1.3rem; margin: 0; }
+.screen-chamada-destino { font-size: 1.6rem; margin-top: 10px; }
+
+/* ---------- 11. Presença ---------- */
+.grade-presenca {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.cartao-presenca {
+    background: var(--cor-cartao);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-left: 4px solid var(--cor-sucesso);
+}
+.cartao-presenca span { color: var(--cor-texto-suave); font-size: 0.85rem; }
+.cartao-presenca.presenca-falta { border-left-color: var(--cor-erro); }
+.cartao-presenca-acoes { display: flex; gap: 14px; margin-top: 8px; }

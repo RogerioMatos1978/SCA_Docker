@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block titulo %}Sistema de Chamada de Alunos{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% block head_extra %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+{% block conteudo_completo %}
+<header class="topo">
+    <a href="{{ url_for('home') }}" class="topo-logo">📋 Chamada de Alunos</a>
+    <nav class="topo-nav">
+        {% if session.get('usuario_id') %}
+            <a href="{{ url_for('admin.dashboard') }}">Painel</a>
+            <a href="{{ url_for('admin.salas') }}">Salas</a>
+            <a href="{{ url_for('admin.alunos') }}">Alunos</a>
+            <a href="{{ url_for('presenca.index') }}">Presença</a>
+            <a href="{{ url_for('kiosk.gestao') }}">Gestão Kiosk</a>
+            {% if session.get('usuario_perfil') == 'administrador' %}
+                <a href="{{ url_for('admin.usuarios') }}">Usuários</a>
+                <a href="{{ url_for('admin.configuracoes') }}">Configurações</a>
+            {% endif %}
+            <span class="topo-usuario">{{ session.get('usuario_nome') }}</span>
+            <a href="{{ url_for('auth.logout') }}">Sair</a>
+        {% else %}
+            <a href="{{ url_for('kiosk.fila') }}">Kiosk</a>
+            <a href="{{ url_for('screen.selecionar') }}">TV</a>
+            <a href="{{ url_for('auth.login') }}">Entrar</a>
+        {% endif %}
+    </nav>
+</header>
+
+<main class="conteudo">
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% if mensagens %}
+            <div class="flash-lista">
+            {% for categoria, mensagem in mensagens %}
+                <div class="flash flash-{{ categoria }}">{{ mensagem }}</div>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block conteudo %}{% endblock %}
+</main>
+{% endblock %}
+
+{% block scripts %}{% endblock %}
+</body>
+</html>

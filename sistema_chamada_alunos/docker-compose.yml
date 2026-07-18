@@ -1,0 +1,25 @@
+services:
+  chamada-alunos:
+    build: .
+    container_name: chamada_alunos
+    ports:
+      # Acesse em http://localhost:5000 (ou http://SEU-IP-NA-REDE:5000
+      # a partir de outros dispositivos na mesma rede local, como as
+      # TVs/terminais)
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      # Troque por um valor aleatório antes de usar em produção real
+      - SECRET_KEY=troque-esta-chave-por-uma-aleatoria-e-secreta
+    volumes:
+      # Estes volumes fazem o banco de dados, as fotos, os backups e
+      # os logs sobreviverem a um "docker compose down" / atualização
+      # da imagem — os dados ficam guardados no seu computador, fora
+      # do container.
+      - ./database:/app/database
+      - ./static/fotos:/app/static/fotos
+      - ./static/fotos_salas:/app/static/fotos_salas
+      - ./static/uploads:/app/static/uploads
+      - ./backups:/app/backups
+      - ./logs:/app/logs
+    restart: unless-stopped

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block titulo %}Importar alunos{% endblock %}
+{% block conteudo %}
+<h1>Importar alunos via CSV</h1>
+
+<p class="texto-ajuda">
+    Formato esperado, uma linha por aluno, separado por ponto e vírgula (<code>;</code>):<br>
+    <code>nome;turma;sala;codigo</code><br>
+    Exemplo: <code>Maria Silva;5º Ano A;Robótica;2026001</code><br>
+    Se a sala informada ainda não existir, ela é criada automaticamente.
+    Alunos com <code>codigo</code> já cadastrado são ignorados (não duplica).
+</p>
+
+<form method="POST" enctype="multipart/form-data" class="formulario">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="arquivo_csv">Arquivo CSV</label>
+    <input type="file" id="arquivo_csv" name="arquivo_csv" accept=".csv" required>
+    <button type="submit" class="botao botao-primario">Importar</button>
+    <a href="{{ url_for('admin.alunos') }}" class="botao">Cancelar</a>
+</form>
+{% endblock %}

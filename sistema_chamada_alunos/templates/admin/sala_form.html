@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block titulo %}{{ 'Editar sala' if sala else 'Nova sala' }}{% endblock %}
+{% block conteudo %}
+<h1>{{ 'Editar sala' if sala else 'Nova sala' }}</h1>
+
+<form method="POST" enctype="multipart/form-data" class="formulario">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label for="nome">Nome da sala</label>
+    <input type="text" id="nome" name="nome" required value="{{ sala['nome'] if sala else '' }}">
+
+    <label for="cor">Cor (usada na TV e nos cartões)</label>
+    <input type="color" id="cor" name="cor" value="{{ sala['cor'] if sala else '#2563eb' }}">
+
+    <label for="ordem">Ordem de exibição</label>
+    <input type="number" id="ordem" name="ordem" value="{{ sala['ordem'] if sala else 0 }}">
+
+    {% if sala %}
+    <label class="checkbox-linha">
+        <input type="checkbox" name="ativa" {{ 'checked' if sala['ativa'] }}>
+        Sala ativa
+    </label>
+    {% endif %}
+
+    <label for="foto">Foto da sala (opcional)</label>
+    <input type="file" id="foto" name="foto" accept="image/*">
+
+    <button type="submit" class="botao botao-primario">Salvar</button>
+    <a href="{{ url_for('admin.salas') }}" class="botao">Cancelar</a>
+</form>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block titulo %}Kiosk — Chamada{% endblock %}
+{% block body_class %}tela-kiosk{% endblock %}
+
+{% block conteudo_completo %}
+<div class="kiosk-topo">
+    <span class="kiosk-titulo">📋 Terminal de Chamada</span>
+    <div class="kiosk-topo-acoes">
+        <input type="text" id="kiosk-busca" placeholder="Buscar aluno..." autocomplete="off">
+        {% if not modo_simplificado %}
+            {% if session.get('usuario_id') %}
+            <a class="botao" href="{{ url_for('kiosk.gestao') }}">Gestão</a>
+            {% endif %}
+        {% endif %}
+        <a class="botao-discreto" href="{{ url_for('auth.login') if not session.get('usuario_id') else url_for('kiosk.gestao') }}" title="Login">🔒</a>
+    </div>
+</div>
+
+<div id="kiosk-alerta" class="kiosk-alerta" style="display:none;"></div>
+
+<div class="kiosk-corpo">
+    <section class="kiosk-fila">
+        <h2>Alunos aguardando (<span id="kiosk-contagem">{{ alunos|length }}</span>)</h2>
+        <div id="kiosk-lista" class="kiosk-lista">
+            {% for aluno in alunos %}
+            <div class="kiosk-cartao-aluno" data-nome="{{ aluno['nome']|lower }}" data-id="{{ aluno['id'] }}">
+                <div class="kiosk-cartao-foto">
+                    {% if aluno['foto'] %}
+                    <img src="{{ url_for('admin.servir_foto_aluno', nome_arquivo=aluno['foto']) }}" alt="{{ aluno['nome'] }}">
+                    {% else %}
+                    <span class="kiosk-cartao-inicial">{{ aluno['nome'][0]|upper }}</span>
+                    {% endif %}
+                </div>
+                <div class="kiosk-cartao-info">
+                    <strong>{{ aluno['nome'] }}{% if aluno['prioridade'] %} ⭐{% endif %}</strong>
+                    <span>{{ aluno['turma'] or '' }} {% if aluno['sala_nome'] %}· {{ aluno['sala_nome'] }}{% endif %}</span>
+                </div>
+                <button class="botao botao-primario botao-chamar" data-id="{{ aluno['id'] }}">Chamar</button>
+            </div>
+            {% else %}
+            <p class="kiosk-vazio">Nenhum aluno aguardando no momento.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="kiosk-recentes">
+        <h2>Chamados recentemente</h2>
+        <div id="kiosk-recentes-lista">
+            {% for c in recentes %}
+            <div class="kiosk-cartao-recente">
+                <div>
+                    <strong>{{ c['aluno_nome'] }}</strong>
+                    <span>{{ c['sala_nome'] or '' }}</span>
+                </div>
+                <button class="botao botao-rechamar" data-id="{{ c['aluno_id'] }}">Rechamar</button>
+            </div>
+            {% else %}
+            <p class="kiosk-vazio">Ninguém chamado ainda.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+    window.CONFIG_KIOSK = {};
+</script>
+<script src="{{ url_for('static', filename='js/kiosk.js') }}"></script>
+{% endblock %}
