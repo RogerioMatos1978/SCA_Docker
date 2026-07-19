@@ -17,7 +17,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia o resto do código da aplicação
+# Copia o resto do código da aplicação (inclui a pasta exemplos/ com
+# os CSVs de salas/alunos de teste)
 COPY . .
 
 # Garante que as pastas usadas para dados persistentes existam

@@ -16,6 +16,13 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+def _env_bool(nome, padrao):
+    valor = os.environ.get(nome)
+    if valor is None:
+        return padrao
+    return valor.strip().lower() in ("1", "true", "sim", "yes", "on")
+
+
 class Config:
     # Chave usada para assinar a sessão do Flask e os tokens CSRF.
     # Em produção, defina SECRET_KEY como variável de ambiente com um
@@ -43,6 +50,21 @@ class Config:
     LOGS_DIR = os.environ.get(
         "LOGS_DIR", os.path.join(BASE_DIR, "logs")
     )
+
+    # Pasta com os CSVs de exemplo (salas_exemplo.csv, alunos_exemplo.csv)
+    # usados para deixar o sistema pronto pra testar assim que ele sobe
+    # pela primeira vez. Ver AUTO_IMPORTAR_EXEMPLOS abaixo.
+    EXEMPLOS_DIR = os.environ.get(
+        "EXEMPLOS_DIR", os.path.join(BASE_DIR, "exemplos")
+    )
+
+    # Se True (padrão), na primeira vez que o sistema roda com o banco
+    # de salas vazio, importa automaticamente os CSVs de exemplo — o
+    # Kiosk e a TV já sobem com salas/alunos de teste, sem precisar
+    # importar nada manualmente. Para desligar (ex.: instalação real
+    # de uma escola, sem dados fictícios), defina a variável de
+    # ambiente AUTO_IMPORTAR_EXEMPLOS=0 no docker-compose.yml.
+    AUTO_IMPORTAR_EXEMPLOS = _env_bool("AUTO_IMPORTAR_EXEMPLOS", True)
 
     # Tamanho máximo de upload (5 MB) — evita que alguém envie um
     # arquivo gigante sem querer.

@@ -52,18 +52,38 @@ def create_app(config_name=None):
 
     init_db(app.config["DATABASE_PATH"])
 
-    # Cria um administrador padrão na primeiríssima execução, se ainda
-    # não existir nenhum usuário no banco.
     conn = get_db(app.config["DATABASE_PATH"])
     try:
+        # Cria um administrador padrão na primeiríssima execução, se
+        # ainda não existir nenhum usuário no banco.
         credenciais_iniciais = services.criar_usuario_padrao_se_nao_existir(conn)
+
+        # Deixa o sistema pronto pra testar assim que ele sobe: se
+        # ainda não há nenhuma sala cadastrada, importa os CSVs de
+        # exemplo (salas/alunos com as disciplinas da BNCC) — assim o
+        # Kiosk e a TV já têm o que mostrar logo no primeiro
+        # "docker compose up". Só roda se AUTO_IMPORTAR_EXEMPLOS
+        # estiver ligado (padrão) e nunca sobrescreve dados já
+        # existentes (ver services.importar_exemplos_iniciais).
+        resumo_exemplos = None
+        if app.config.get("AUTO_IMPORTAR_EXEMPLOS", True):
+            resumo_exemplos = services.importar_exemplos_iniciais(
+                conn, app.config["EXEMPLOS_DIR"]
+            )
     finally:
         conn.close()
+
     if credenciais_iniciais:
         app.logger.warning(
             "Usuário administrador padrão criado: usuario=%s senha=%s "
             "(troque a senha assim que possível em /admin/usuarios)",
             credenciais_iniciais["usuario"], credenciais_iniciais["senha"],
+        )
+    if resumo_exemplos:
+        app.logger.warning(
+            "Dados de exemplo importados automaticamente: %s sala(s), %s aluno(s) "
+            "(pasta exemplos/ — desligue com AUTO_IMPORTAR_EXEMPLOS=0 se não quiser isso).",
+            resumo_exemplos["salas_criadas"], resumo_exemplos["alunos_criados"],
         )
 
     csrf.init_app(app)
@@ -114,4 +134,7 @@ app = create_app()
 
 if __name__ == "__main__":
     porta = int(os.environ.get("PORT", 5000))
+    # host="0.0.0.0": aceita conexões de qualquer dispositivo na rede
+    # local (não só do próprio computador), necessário para o Kiosk e
+    # as TVs abrirem em outros aparelhos.
     socketio.run(app, host="0.0.0.0", port=porta)

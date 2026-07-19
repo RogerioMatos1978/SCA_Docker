@@ -122,6 +122,10 @@ def buscar_sala_por_nome(conn, nome):
     return conn.execute("SELECT * FROM salas WHERE nome = ?", (nome,)).fetchone()
 
 
+def contar_salas(conn):
+    return conn.execute("SELECT COUNT(*) AS total FROM salas").fetchone()["total"]
+
+
 def criar_sala(conn, nome, cor="#2563eb", ordem=0):
     cur = conn.execute(
         "INSERT INTO salas (nome, cor, ordem, ativa) VALUES (?, ?, ?, 1)",
@@ -273,6 +277,40 @@ def importar_alunos_csv(conn, conteudo_texto):
         criar_aluno(conn, nome, turma, sala_id, codigo)
         criados += 1
     return criados, ignorados
+
+
+# ---------------------------------------------------------------------------
+# Exemplos (dados de teste, ver pasta exemplos/)
+# ---------------------------------------------------------------------------
+
+def importar_exemplos_iniciais(conn, exemplos_dir):
+    """Deixa o sistema pronto pra testar assim que ele sobe: se ainda
+    não existe NENHUMA sala cadastrada (primeira execução, banco
+    novo), importa automaticamente exemplos/salas_exemplo.csv e
+    exemplos/alunos_exemplo.csv, se existirem. Não faz nada se já
+    houver alguma sala (nunca sobrescreve dados reais de uma escola).
+    Retorna um dict com o resumo, ou None se não importou nada."""
+    if contar_salas(conn) > 0:
+        return None
+
+    caminho_salas = os.path.join(exemplos_dir, "salas_exemplo.csv")
+    caminho_alunos = os.path.join(exemplos_dir, "alunos_exemplo.csv")
+
+    resumo = {"salas_criadas": 0, "alunos_criados": 0}
+
+    if os.path.isfile(caminho_salas):
+        with open(caminho_salas, "r", encoding="utf-8") as arquivo:
+            criadas, _ = importar_salas_csv(conn, arquivo.read())
+            resumo["salas_criadas"] = criadas
+
+    if os.path.isfile(caminho_alunos):
+        with open(caminho_alunos, "r", encoding="utf-8") as arquivo:
+            criados, _ = importar_alunos_csv(conn, arquivo.read())
+            resumo["alunos_criados"] = criados
+
+    if resumo["salas_criadas"] == 0 and resumo["alunos_criados"] == 0:
+        return None
+    return resumo
 
 
 # ---------------------------------------------------------------------------

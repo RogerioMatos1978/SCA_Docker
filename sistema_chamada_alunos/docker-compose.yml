@@ -5,12 +5,20 @@ services:
     ports:
       # Acesse em http://localhost:5000 (ou http://SEU-IP-NA-REDE:5000
       # a partir de outros dispositivos na mesma rede local, como as
-      # TVs/terminais)
+      # TVs/terminais). "5000:5000" publica a porta em TODAS as
+      # interfaces de rede do computador, então qualquer aparelho na
+      # mesma rede Wi-Fi/cabeada consegue acessar.
       - "5000:5000"
     environment:
       - FLASK_ENV=production
       # Troque por um valor aleatório antes de usar em produção real
       - SECRET_KEY=troque-esta-chave-por-uma-aleatoria-e-secreta
+      # Com AUTO_IMPORTAR_EXEMPLOS=1 (padrão), o sistema já sobe com
+      # salas e alunos de exemplo (ver pasta exemplos/) sempre que o
+      # banco de salas estiver vazio — assim ele fica pronto pra usar
+      #/testar assim que o container inicia. Mude para 0 numa
+      # instalação real de escola, se não quiser dados fictícios.
+      - AUTO_IMPORTAR_EXEMPLOS=1
     volumes:
       # Estes volumes fazem o banco de dados, as fotos, os backups e
       # os logs sobreviverem a um "docker compose down" / atualização
@@ -22,4 +30,17 @@ services:
       - ./static/uploads:/app/static/uploads
       - ./backups:/app/backups
       - ./logs:/app/logs
+      # Montado também (somente leitura) para você poder editar os
+      # CSVs de exemplo direto nesta pasta, sem precisar reconstruir a
+      # imagem, antes do primeiro "docker compose up".
+      - ./exemplos:/app/exemplos:ro
+    # "unless-stopped": o container reinicia sozinho toda vez que o
+    # Docker Desktop/serviço do Docker for reiniciado (ex.: o
+    # computador reiniciou, o Docker Desktop foi fechado e reaberto),
+    # sem precisar rodar "docker compose up" de novo manualmente — é
+    # assim que o sistema fica "sempre pronto" ao iniciar o Docker.
+    # Isso só vale enquanto o container não for removido com
+    # "docker compose down"; para pausar sem perder esse
+    # comportamento, use "docker compose stop" (retoma sozinho depois)
+    # em vez de "down".
     restart: unless-stopped

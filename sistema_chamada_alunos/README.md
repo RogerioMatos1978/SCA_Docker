@@ -4,7 +4,7 @@ Aplicação web para gerenciar filas de atendimento e chamar alunos por
 nome (com foto e voz) em instituições de ensino. Um operador chama um
 aluno pelo terminal **Kiosk** e a chamada aparece — com foto e
 narração por voz — em um painel de TV (**Screen**), em tempo real via
-WebSocket, sem recarregar a página.
+WebSocket, sem recarregar a página. Tema visual "Matrix" (preto/verde).
 
 Esta versão implementa o **núcleo funcional** do sistema (módulos
 1–7 do `PROMPT.md` original): banco de dados, login com perfis,
@@ -29,20 +29,88 @@ avançado por sala, etc.) ainda não estão implementados — veja
    ```
    http://localhost:5000
    ```
-4. Para acessar de outros dispositivos na mesma rede (TVs, tablets),
-   descubra o IP do computador que está rodando o Docker (`ipconfig`
-   no Windows, procure "Endereço IPv4") e acesse, por exemplo:
-   ```
-   http://192.168.0.10:5000
-   ```
 
-Para parar: `Ctrl+C` no terminal, depois `docker compose down`
-(os dados continuam salvos nas pastas locais, veja abaixo).
+Para rodar em segundo plano (recomendado para deixar sempre no ar):
+`docker compose up --build -d`. Para ver os logs depois:
+`docker compose logs -f`.
 
-Para rodar em segundo plano: `docker compose up --build -d`.
-Para ver os logs depois: `docker compose logs -f`.
+## 2. Rede local (Kiosk na portaria, TVs nas salas)
 
-### Login inicial
+O `docker-compose.yml` já publica a porta 5000 em **todas as
+interfaces de rede** do computador (`"5000:5000"`), e o Flask já sobe
+com `host="0.0.0.0"` — ou seja, qualquer dispositivo na mesma rede
+Wi-Fi/cabeada já consegue acessar o sistema, sem configuração extra.
+
+Para descobrir o IP do computador que está rodando o Docker:
+- **Windows:** abra o PowerShell e rode `ipconfig`, procure "Endereço IPv4" (normalmente `192.168.x.x`).
+- **macOS/Linux:** rode `ifconfig` ou `ip addr`.
+
+Nos outros dispositivos da rede (Kiosk na recepção, TVs nas salas,
+celulares/tablets para gerenciar), acesse:
+```
+http://SEU-IP-AQUI:5000
+```
+Por exemplo, `http://192.168.0.10:5000/kiosk/` no terminal da portaria
+e `http://192.168.0.10:5000/screen/` em cada TV.
+
+**Firewall do Windows:** na primeira vez que o Docker Desktop expõe a
+porta, o Windows pode perguntar se permite a conexão na rede — escolha
+"Permitir acesso" para redes privadas. Se outros dispositivos não
+conseguirem conectar, confira se a porta 5000 está liberada no
+firewall para a rede local.
+
+**IP fixo:** como o endereço IP do computador pode mudar (DHCP), vale
+configurar um IP fixo/reserva de DHCP para ele no roteador, para as
+TVs e o Kiosk não perderem a conexão depois de reiniciar o roteador.
+
+## 3. Sistema sempre pronto quando o Docker inicia
+
+Duas coisas garantem isso:
+
+1. **`restart: unless-stopped`** no `docker-compose.yml` — o container
+   reinicia sozinho toda vez que o Docker Desktop/serviço do Docker é
+   reiniciado (computador reiniciou, Docker Desktop foi fechado e
+   reaberto), sem precisar rodar `docker compose up` de novo na mão.
+   Isso só vale enquanto o container não for removido: use
+   `docker compose stop` para pausar (ele retoma sozinho depois) em
+   vez de `docker compose down` (que remove o container — nesse caso
+   você precisa rodar `docker compose up -d` de novo manualmente).
+2. **Auto-carregamento de dados de exemplo** (ver seção 4 abaixo) — o
+   sistema já sobe com salas e alunos de teste na primeira vez, sem
+   precisar importar nada manualmente antes de usar.
+
+Para o Docker Desktop já estar rodando sozinho quando o Windows liga,
+ative em Docker Desktop → Settings → General → **"Start Docker Desktop
+when you sign in"**.
+
+## 4. Dados de exemplo (pasta `exemplos/`)
+
+A pasta `exemplos/` traz dois CSVs prontos para teste:
+
+- **`salas_exemplo.csv`** — 14 salas, uma por componente curricular da
+  BNCC (Base Nacional Comum Curricular / MEC) do Ensino Fundamental —
+  Anos Finais e do Ensino Médio: Língua Portuguesa, Matemática,
+  Ciências, Geografia, História, Arte, Educação Física, Língua
+  Inglesa, Ensino Religioso, Biologia, Física, Química, Sociologia e
+  Filosofia.
+- **`alunos_exemplo.csv`** — 39 alunos fictícios, distribuídos em
+  turmas do 6º ao 9º ano (Fundamental) e da 1ª à 3ª série (Médio),
+  cada um associado a uma das salas acima.
+
+**Esses dois arquivos são importados automaticamente** na primeira vez
+que o sistema roda (banco de salas vazio) — é assim que ele já sobe
+"pronto pra usar". Se você não quiser dados fictícios (ex.: instalação
+real de uma escola), desligue isso definindo no `docker-compose.yml`:
+```yaml
+environment:
+  - AUTO_IMPORTAR_EXEMPLOS=0
+```
+Você também pode editar os CSVs em `exemplos/` antes do primeiro
+`docker compose up` (a pasta é montada no container) para já subir com
+os dados reais da sua escola, ou reimportá-los manualmente a qualquer
+momento em Alunos → Importar CSV / Salas → Importar CSV.
+
+## 5. Login inicial
 
 Na primeira vez que o sistema roda, ele cria automaticamente um
 usuário administrador:
@@ -62,33 +130,38 @@ container, então os dados sobrevivem a atualizações/reinícios:
 - `./database/alunos.db` — banco de dados SQLite
 - `./static/fotos/` — fotos de alunos
 - `./static/fotos_salas/` — fotos de salas
+- `./exemplos/` — CSVs de exemplo (editável, montado somente leitura)
 - `./backups/`, `./logs/` — reservado para os módulos futuros de backup/log
 
-## 2. Como usar
+## 6. Como usar
 
 1. Faça login (`/login`) com o admin padrão.
-2. Cadastre uma ou mais **salas** em "Salas".
-3. Cadastre **alunos** em "Alunos" (manualmente ou importando um CSV — veja o botão "Importar CSV").
-4. Abra o **Kiosk** (`/kiosk/`) num terminal/computador da recepção — é público, não precisa de login.
-5. Abra a **TV** (`/screen/`) num navegador na TV da sala — também é pública. Na primeira vez, escolha a sala; da próxima vez ela abre direto nessa sala.
-6. No Kiosk, clique em "Chamar" no nome de um aluno: ele aparece, com foto e narração por voz, na TV da sala correspondente (e nas demais telas Kiosk conectadas, na lista de "Chamados recentemente").
-7. Em "Presença", marque quem faltou hoje — quem falta some da fila do Kiosk automaticamente (quem não é marcado é presente por padrão).
+2. As salas e os alunos de exemplo (seção 4) já estão cadastrados —
+   ou cadastre os seus próprios em "Salas" e "Alunos".
+3. Abra o **Kiosk** (`/kiosk/`) num terminal/computador da recepção — é público, não precisa de login.
+4. Abra a **TV** (`/screen/`) num navegador na TV da sala — também é pública. Na primeira vez, escolha a sala; da próxima vez ela abre direto nessa sala.
+5. No Kiosk, clique em "Chamar" no nome de um aluno: ele aparece, com foto e narração por voz, na TV da sala correspondente (e nas demais telas Kiosk conectadas, na lista de "Chamados recentemente").
+6. Em "Presença", marque quem faltou hoje — quem falta some da fila do Kiosk automaticamente (quem não é marcado é presente por padrão).
 
-## 3. Formato do CSV de importação de alunos
+## 7. Formato dos CSVs de importação
 
-Um aluno por linha, campos separados por `;`:
-
+**Alunos** — um aluno por linha, campos separados por `;`:
 ```
 nome;turma;sala;codigo
 Maria Silva;5º Ano A;Robótica;2026001
 João Souza;5º Ano A;Robótica;2026002
 ```
-
 Se a sala informada ainda não existir, ela é criada automaticamente.
 Alunos com `codigo` já cadastrado são ignorados (evita duplicar ao
 reimportar a mesma planilha).
 
-## 4. Estrutura de pastas
+**Salas** — uma sala por linha, campos separados por `;`:
+```
+nome;descricao;cor
+Matemática;Sala de Matemática;#2563eb
+```
+
+## 8. Estrutura de pastas
 
 ```
 sistema_chamada_alunos/
@@ -97,6 +170,7 @@ sistema_chamada_alunos/
 ├── requirements.txt
 ├── Dockerfile
 ├── docker-compose.yml
+├── exemplos/               # CSVs de salas/alunos de teste (BNCC/MEC)
 ├── database/
 │   ├── models.py           # schema SQL
 │   ├── services.py          # toda a lógica de negócio e SQL
@@ -109,20 +183,20 @@ sistema_chamada_alunos/
 │   └── presenca.py
 ├── templates/              # Jinja2
 ├── static/
-│   ├── css/style.css        # CSS único do projeto
-│   ├── js/                   # kiosk.js, screen.js, screen_selecionar.js
+│   ├── css/style.css        # CSS único do projeto (tema Matrix)
+│   ├── js/                   # kiosk.js, screen.js, screen_selecionar.js, matrix-rain.js
 │   ├── fotos/                 # fotos de alunos
 │   └── fotos_salas/            # fotos de salas
 ├── backups/
 └── logs/
 ```
 
-## 5. Rotas principais
+## 9. Rotas principais
 
 | Rota | Público? | Descrição |
 |---|---|---|
 | `/` | sim | Página inicial |
-| `/login`, `/logout` | sim | Autenticação |
+| `/login`, `/logout` | sim | Autenticação (login por usuário, não e-mail) |
 | `/kiosk/` | **sim** | Fila de chamada (terminal) |
 | `/kiosk/gestao` | login | Ativar/desativar aluno, trocar foto |
 | `/screen/` | **sim** | Escolha de sala da TV |
@@ -134,7 +208,7 @@ sistema_chamada_alunos/
 | `/presenca/` | login | Presença diária |
 | `/healthcheck` | sim | Usado pelo Docker |
 
-## 6. Rodando sem Docker (opcional, para desenvolvimento)
+## 10. Rodando sem Docker (opcional, para desenvolvimento)
 
 ```
 python3 -m venv venv
@@ -144,11 +218,11 @@ python app.py
 ```
 Acesse `http://localhost:5000`.
 
-## 7. Próximos passos (não implementados nesta versão)
+## 11. Próximos passos (não implementados nesta versão)
 
 - Histórico completo de chamadas e exportações (CSV/Excel/PDF)
 - API REST
-- Backup automático/manual e restauração, QR Code, tema claro/escuro, som de aviso
+- Backup automático/manual e restauração, QR Code, som de aviso
 - Múltiplos guichês, "rechamar mantendo dados originais" com histórico completo
 - Ano letivo, aluno ativo/inativo por transferência, múltiplas unidades/campi
 - Kiosk em "modo simplificado" dedicado (já existe a configuração no banco, falta a tela reduzida)
