@@ -19,13 +19,19 @@
         <option value="{{ sala['id'] }}" {{ 'selected' if sala_id == sala['id'] }}>{{ sala['nome'] }}</option>
         {% endfor %}
     </select>
+    <select name="turno">
+        <option value="">Todos os turnos</option>
+        <option value="matutino" {{ 'selected' if turno == 'matutino' }}>Matutino</option>
+        <option value="vespertino" {{ 'selected' if turno == 'vespertino' }}>Vespertino</option>
+        <option value="integral" {{ 'selected' if turno == 'integral' }}>Integral</option>
+    </select>
     <button type="submit" class="botao">Filtrar</button>
 </form>
 
 <div class="tabela-wrap">
 <table class="tabela">
     <thead>
-        <tr><th>Nome</th><th>Turma</th><th>Sala</th><th>Código</th><th>Status</th><th>Ativo</th><th>Ações</th></tr>
+        <tr><th>Nome</th><th>Turma</th><th>Sala</th><th>Turno</th><th>Código</th><th>Status (período atual)</th><th>Ativo</th><th>Ações</th></tr>
     </thead>
     <tbody>
         {% for aluno in alunos %}
@@ -33,8 +39,9 @@
             <td>{{ aluno['nome'] }}{% if aluno['prioridade'] %} ⭐{% endif %}</td>
             <td>{{ aluno['turma'] or '—' }}</td>
             <td>{{ aluno['sala_nome'] or '—' }}</td>
+            <td>{{ aluno['turno']|capitalize }}</td>
             <td>{{ aluno['codigo'] or '—' }}</td>
-            <td>{{ aluno['status'] }}</td>
+            <td>{{ 'Chamado' if aluno['id'] in chamados_periodo else 'Aguardando' }}</td>
             <td>{{ 'Sim' if aluno['ativo'] else 'Não' }}</td>
             <td>
                 {% if session.get('usuario_perfil') in ('administrador', 'supervisor') %}
@@ -53,7 +60,7 @@
             </td>
         </tr>
         {% else %}
-        <tr><td colspan="7">Nenhum aluno encontrado.</td></tr>
+        <tr><td colspan="8">Nenhum aluno encontrado.</td></tr>
         {% endfor %}
     </tbody>
 </table>

@@ -152,13 +152,19 @@ def salas_importar():
 def alunos():
     busca = request.args.get("busca", "").strip() or None
     sala_id = request.args.get("sala_id", type=int)
+    turno = request.args.get("turno") or None
     conn = _conn()
     try:
-        lista = services.listar_alunos(conn, sala_id=sala_id, busca=busca)
+        lista = services.listar_alunos(conn, sala_id=sala_id, busca=busca, turno=turno)
         salas = services.listar_salas(conn)
+        chamados_periodo = services.alunos_chamados_no_periodo_atual(conn)
     finally:
         conn.close()
-    return render_template("admin/alunos.html", alunos=lista, salas=salas, busca=busca or "", sala_id=sala_id)
+    return render_template(
+        "admin/alunos.html",
+        alunos=lista, salas=salas, busca=busca or "", sala_id=sala_id, turno=turno or "",
+        chamados_periodo=chamados_periodo,
+    )
 
 
 @admin_bp.route("/alunos/novo", methods=["GET", "POST"])
@@ -173,10 +179,11 @@ def alunos_novo():
             sala_id = request.form.get("sala_id", type=int)
             codigo = request.form.get("codigo", "").strip() or None
             prioridade = request.form.get("prioridade") == "on"
+            turno = request.form.get("turno", "matutino")
             if not nome:
                 flash("Informe o nome do aluno.", "erro")
                 return render_template("admin/aluno_form.html", aluno=None, salas=salas)
-            aluno_id = services.criar_aluno(conn, nome, turma, sala_id, codigo, prioridade)
+            aluno_id = services.criar_aluno(conn, nome, turma, sala_id, codigo, prioridade, turno)
             arquivo = request.files.get("foto")
             if arquivo and arquivo.filename:
                 nome_arquivo = services.salvar_foto(arquivo, current_app.config["FOTOS_DIR"])
@@ -205,7 +212,8 @@ def alunos_editar(aluno_id):
             sala_id = request.form.get("sala_id", type=int)
             codigo = request.form.get("codigo", "").strip() or None
             prioridade = request.form.get("prioridade") == "on"
-            services.atualizar_aluno(conn, aluno_id, nome, turma, sala_id, codigo, prioridade)
+            turno = request.form.get("turno", "matutino")
+            services.atualizar_aluno(conn, aluno_id, nome, turma, sala_id, codigo, prioridade, turno)
             arquivo = request.files.get("foto")
             if arquivo and arquivo.filename:
                 nome_arquivo = services.salvar_foto(arquivo, current_app.config["FOTOS_DIR"])
@@ -316,6 +324,10 @@ def configuracoes():
             services.definir_config(
                 conn, "kiosk_modo_simplificado",
                 "1" if request.form.get("kiosk_modo_simplificado") == "on" else "0",
+            )
+            services.definir_config(
+                conn, "hora_corte_periodo",
+                request.form.get("hora_corte_periodo", "13:00").strip() or "13:00",
             )
             flash("Configurações salvas.", "sucesso")
             return redirect(url_for("admin.configuracoes"))

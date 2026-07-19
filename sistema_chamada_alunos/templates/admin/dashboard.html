@@ -2,6 +2,10 @@
 {% block titulo %}Painel{% endblock %}
 {% block conteudo %}
 <h1>Painel</h1>
+<p class="texto-ajuda" style="margin-top:-10px;">
+    Período atual: <strong>{{ 'Matutino' if stats.periodo_atual == 'matutino' else 'Vespertino' }}</strong>
+    (ajustável em <a href="{{ url_for('admin.configuracoes') }}">Configurações</a>)
+</p>
 
 <div class="grade-cartoes">
     <div class="cartao-estatistica">

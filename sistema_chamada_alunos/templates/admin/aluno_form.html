@@ -23,6 +23,16 @@
     <label for="codigo">Código / matrícula (opcional, usado na importação CSV)</label>
     <input type="text" id="codigo" name="codigo" value="{{ aluno['codigo'] if aluno else '' }}">
 
+    <label for="turno">Turno</label>
+    <select id="turno" name="turno">
+        <option value="matutino" {{ 'selected' if not aluno or aluno['turno'] == 'matutino' }}>Matutino</option>
+        <option value="vespertino" {{ 'selected' if aluno and aluno['turno'] == 'vespertino' }}>Vespertino</option>
+        <option value="integral" {{ 'selected' if aluno and aluno['turno'] == 'integral' }}>Integral (disponível nos dois períodos)</option>
+    </select>
+    <p class="texto-ajuda" style="margin-top:0;">
+        Define em qual período (matutino/vespertino) o aluno fica disponível para chamada no Kiosk.
+    </p>
+
     <label class="checkbox-linha">
         <input type="checkbox" name="prioridade" {{ 'checked' if aluno and aluno['prioridade'] }}>
         Prioridade na fila

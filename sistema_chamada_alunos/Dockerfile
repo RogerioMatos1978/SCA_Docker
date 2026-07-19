@@ -8,9 +8,22 @@ FROM python:3.12-slim
 # Evita que o Python gere arquivos .pyc e deixa o log aparecer na hora
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    FLASK_ENV=production
+    FLASK_ENV=production \
+    DEBIAN_FRONTEND=noninteractive \
+    TZ=America/Sao_Paulo
 
 WORKDIR /app
+
+# Instala o fuso horário local (America/Sao_Paulo por padrão — troque o
+# TZ acima e no docker-compose.yml se a escola ficar em outro fuso).
+# Isso é importante porque a virada Matutino/Vespertino usa o horário
+# local do container (datetime('now','localtime') no SQLite); sem isso
+# o container fica em UTC e a virada de período acontece na hora errada.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tzdata \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+    && echo $TZ > /etc/timezone \
+    && rm -rf /var/lib/apt/lists/*
 
 # Instala as dependências primeiro (aproveita cache do Docker enquanto
 # o código muda, mas o requirements.txt não muda)

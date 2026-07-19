@@ -13,6 +13,11 @@ services:
       - FLASK_ENV=production
       # Troque por um valor aleatório antes de usar em produção real
       - SECRET_KEY=troque-esta-chave-por-uma-aleatoria-e-secreta
+      # Fuso horário do container — precisa bater com o fuso real da
+      # escola, pois é ele que define a hora de corte entre os
+      # períodos Matutino/Vespertino (ver Configurações no sistema).
+      # Lista de fusos: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+      - TZ=America/Sao_Paulo
       # Com AUTO_IMPORTAR_EXEMPLOS=1 (padrão), o sistema já sobe com
       # salas e alunos de exemplo (ver pasta exemplos/) sempre que o
       # banco de salas estiver vazio — assim ele fica pronto pra usar

@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     perfil TEXT NOT NULL DEFAULT 'operador'
         CHECK (perfil IN ('administrador', 'supervisor', 'operador')),
     ativo INTEGER NOT NULL DEFAULT 1,
-    criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+    criado_em TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 CREATE TABLE IF NOT EXISTS salas (
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS salas (
     ordem INTEGER NOT NULL DEFAULT 0,
     ativa INTEGER NOT NULL DEFAULT 1,
     foto TEXT,
-    criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+    criado_em TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 CREATE TABLE IF NOT EXISTS alunos (
@@ -51,8 +51,13 @@ CREATE TABLE IF NOT EXISTS alunos (
     prioridade INTEGER NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'aguardando'
         CHECK (status IN ('aguardando', 'chamado')),
+    -- turno em que o aluno tem aula/deve ficar disponível para
+    -- chamada: 'matutino', 'vespertino' ou 'integral' (integral
+    -- aparece na fila nos dois períodos). Ver services._janela_periodo.
+    turno TEXT NOT NULL DEFAULT 'matutino'
+        CHECK (turno IN ('matutino', 'vespertino', 'integral')),
     ativo INTEGER NOT NULL DEFAULT 1,
-    criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+    criado_em TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 CREATE TABLE IF NOT EXISTS presencas (
@@ -62,7 +67,7 @@ CREATE TABLE IF NOT EXISTS presencas (
     status TEXT NOT NULL DEFAULT 'presente'
         CHECK (status IN ('presente', 'faltante')),
     usuario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
-    criado_em TEXT NOT NULL DEFAULT (datetime('now')),
+    criado_em TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     UNIQUE (aluno_id, data)
 );
 
@@ -76,7 +81,7 @@ CREATE TABLE IF NOT EXISTS chamadas (
     tipo TEXT NOT NULL DEFAULT 'chamada'
         CHECK (tipo IN ('chamada', 'rechamada', 'manual')),
     usuario_id INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
-    criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+    criado_em TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 CREATE TABLE IF NOT EXISTS configuracoes (
@@ -95,6 +100,13 @@ _COLUNAS_NOVAS = [
     # dados — o backfill (copiar email -> usuario) roda logo depois,
     # em _migrar_login_email_para_usuario().
     ("usuarios", "usuario", "TEXT"),
+    # Turno do aluno (matutino/vespertino/integral), usado para saber
+    # em qual período ele deve aparecer na fila do Kiosk. Sem CHECK
+    # aqui de propósito — ALTER TABLE ADD COLUMN do SQLite tem
+    # restrições; a validação do valor já é garantida pela aplicação
+    # (formulário usa <select> com essas 3 opções, e a importação de
+    # CSV cai para 'matutino' se vier um valor inválido/vazio).
+    ("alunos", "turno", "TEXT NOT NULL DEFAULT 'matutino'"),
     # Exemplo de como adicionar uma coluna nova no futuro sem quebrar
     # bancos já existentes:
     # ("alunos", "observacoes", "TEXT"),
@@ -112,6 +124,13 @@ _CONFIGURACOES_PADRAO = {
     "nome_instituicao": "Minha Instituição de Ensino",
     "destino_chamada": "Portaria de Saída",
     "kiosk_modo_simplificado": "0",
+    # Horário (HH:MM, hora local do servidor) que separa o período
+    # matutino do vespertino. Usado pelo Kiosk para: 1) escolher
+    # automaticamente qual período mostrar, e 2) decidir se um aluno
+    # já chamado "neste período" deve sumir da fila (ele volta sozinho
+    # assim que o período muda, sem precisar de reset manual). Ver
+    # services._janela_periodo().
+    "hora_corte_periodo": "13:00",
 }
 
 

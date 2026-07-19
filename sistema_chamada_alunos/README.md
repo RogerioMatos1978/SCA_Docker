@@ -95,7 +95,9 @@ A pasta `exemplos/` traz dois CSVs prontos para teste:
   Filosofia.
 - **`alunos_exemplo.csv`** — 39 alunos fictícios, distribuídos em
   turmas do 6º ao 9º ano (Fundamental) e da 1ª à 3ª série (Médio),
-  cada um associado a uma das salas acima.
+  cada um associado a uma das salas acima e com um **turno** definido
+  (22 matutino, 12 vespertino, 5 integral) — ver seção 7 sobre
+  períodos.
 
 **Esses dois arquivos são importados automaticamente** na primeira vez
 que o sistema roda (banco de salas vazio) — é assim que ele já sobe
@@ -143,17 +145,50 @@ container, então os dados sobrevivem a atualizações/reinícios:
 5. No Kiosk, clique em "Chamar" no nome de um aluno: ele aparece, com foto e narração por voz, na TV da sala correspondente (e nas demais telas Kiosk conectadas, na lista de "Chamados recentemente").
 6. Em "Presença", marque quem faltou hoje — quem falta some da fila do Kiosk automaticamente (quem não é marcado é presente por padrão).
 
-## 7. Formato dos CSVs de importação
+## 7. Períodos: Matutino e Vespertino
+
+Todo aluno tem um **turno** (`matutino`, `vespertino` ou `integral`) e
+fica disponível para chamada no(s) período(s) correspondente(s) — um
+aluno `integral` aparece na fila nos dois períodos.
+
+A fila do Kiosk **se renova sozinha** a cada virada de período e a
+cada novo dia: um aluno chamado de manhã reaparece automaticamente na
+fila assim que vira o período da tarde (e todo mundo reaparece de novo
+no dia seguinte), sem precisar de nenhum reset manual ou tarefa
+agendada. Isso funciona porque o sistema não usa mais um simples
+"já foi chamado sim/não" — ele verifica se existe alguma chamada
+registrada **dentro da janela de tempo do período atual**.
+
+- O horário que separa Matutino de Vespertino é configurável em
+  **Configurações → Horário de corte** (padrão `13:00`, horário local
+  do servidor).
+- O Kiosk mostra abas **☀️ Matutino / 🌇 Vespertino** para forçar a
+  visualização de um período específico (por exemplo, se o operador
+  quiser conferir a fila da tarde antes de bater o horário) — clicando
+  em "Voltar para automático" o Kiosk volta a escolher sozinho, com
+  base no horário atual.
+- Como a virada de período depende do **horário local do servidor**,
+  o `Dockerfile`/`docker-compose.yml` já configuram o fuso horário do
+  container (`TZ=America/Sao_Paulo` por padrão — troque nos dois
+  arquivos se a escola ficar em outro fuso; lista de fusos válidos em
+  https://en.wikipedia.org/wiki/List_of_tz_database_time_zones).
+- Em "Gestão" (`/kiosk/gestao`) e em "Alunos", o botão "Voltar p/
+  fila" desfaz a chamada feita ao aluno **dentro do período atual**,
+  devolvendo-o pra fila imediatamente (sem esperar a próxima virada).
+
+## 8. Formato dos CSVs de importação
 
 **Alunos** — um aluno por linha, campos separados por `;`:
 ```
-nome;turma;sala;codigo
-Maria Silva;5º Ano A;Robótica;2026001
-João Souza;5º Ano A;Robótica;2026002
+nome;turma;sala;codigo;turno
+Maria Silva;5º Ano A;Robótica;2026001;matutino
+João Souza;5º Ano A;Robótica;2026002;vespertino
 ```
 Se a sala informada ainda não existir, ela é criada automaticamente.
 Alunos com `codigo` já cadastrado são ignorados (evita duplicar ao
-reimportar a mesma planilha).
+reimportar a mesma planilha). O campo `turno` é opcional — aceita
+`matutino`, `vespertino` ou `integral`; vazio ou inválido vira
+`matutino` (ver seção 7).
 
 **Salas** — uma sala por linha, campos separados por `;`:
 ```
@@ -161,7 +196,7 @@ nome;descricao;cor
 Matemática;Sala de Matemática;#2563eb
 ```
 
-## 8. Estrutura de pastas
+## 9. Estrutura de pastas
 
 ```
 sistema_chamada_alunos/
@@ -191,7 +226,7 @@ sistema_chamada_alunos/
 └── logs/
 ```
 
-## 9. Rotas principais
+## 10. Rotas principais
 
 | Rota | Público? | Descrição |
 |---|---|---|
@@ -208,7 +243,7 @@ sistema_chamada_alunos/
 | `/presenca/` | login | Presença diária |
 | `/healthcheck` | sim | Usado pelo Docker |
 
-## 10. Rodando sem Docker (opcional, para desenvolvimento)
+## 11. Rodando sem Docker (opcional, para desenvolvimento)
 
 ```
 python3 -m venv venv
@@ -218,7 +253,7 @@ python app.py
 ```
 Acesse `http://localhost:5000`.
 
-## 11. Próximos passos (não implementados nesta versão)
+## 12. Próximos passos (não implementados nesta versão)
 
 - Histórico completo de chamadas e exportações (CSV/Excel/PDF)
 - API REST

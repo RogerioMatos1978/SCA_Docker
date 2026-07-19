@@ -1,39 +1,39 @@
-João Martins;6º Ano A;História;2026001
-Daniel Martins;6º Ano A;Ensino Religioso;2026002
-Karina Lopes;6º Ano A;Geografia;2026003
-Paula Rodrigues;6º Ano B;Arte;2026004
-Emanuel Santos;6º Ano B;Língua Portuguesa;2026005
-Débora Ribeiro;6º Ano B;Geografia;2026006
-Juliana Correia;7º Ano A;Língua Portuguesa;2026007
-Lucas Souza;7º Ano A;Arte;2026008
-Eduarda Araújo;7º Ano A;Educação Física;2026009
-Larissa Oliveira;7º Ano B;História;2026010
-Enzo Correia;7º Ano B;Matemática;2026011
-Helena Carvalho;7º Ano B;Geografia;2026012
-Caio Lopes;8º Ano A;Arte;2026013
-Tatiane Martins;8º Ano A;Geografia;2026014
-Mariana Nunes;8º Ano A;Língua Inglesa;2026015
-Natália Almeida;8º Ano B;Educação Física;2026016
-Otávio Oliveira;8º Ano B;Língua Inglesa;2026017
-Fernanda Santos;8º Ano B;Ciências;2026018
-Nicolas Ferreira;9º Ano A;História;2026019
-Beatriz Carvalho;9º Ano A;Ciências;2026020
-Yasmin Oliveira;9º Ano A;Geografia;2026021
-Kevin Ferreira;9º Ano B;Ensino Religioso;2026022
-Rodrigo Souza;9º Ano B;Ensino Religioso;2026023
-Igor Araújo;9º Ano B;História;2026024
-Vinícius Rodrigues;1ª Série A;Filosofia;2026025
-Rafaela Ribeiro;1ª Série A;Língua Inglesa;2026026
-Thiago Martins;1ª Série A;História;2026027
-Matheus Pereira;1ª Série B;Língua Inglesa;2026028
-Carla Martins;1ª Série B;História;2026029
-Ana Martins;2ª Série A;Geografia;2026030
-Sofia Almeida;2ª Série A;Física;2026031
-Gustavo Rodrigues;2ª Série A;Biologia;2026032
-Felipe Oliveira;2ª Série B;Educação Física;2026033
-Gabriela Lopes;2ª Série B;Arte;2026034
-Isabela Pereira;3ª Série A;Matemática;2026035
-Olívia Correia;3ª Série A;Língua Portuguesa;2026036
-Pedro Ferreira;3ª Série A;Matemática;2026037
-Samuel Pereira;3ª Série B;Biologia;2026038
-Bruno Ribeiro;3ª Série B;Sociologia;2026039
+João Martins;6º Ano A;História;2026001;matutino
+Daniel Martins;6º Ano A;Ensino Religioso;2026002;matutino
+Karina Lopes;6º Ano A;Geografia;2026003;integral
+Paula Rodrigues;6º Ano B;Arte;2026004;matutino
+Emanuel Santos;6º Ano B;Língua Portuguesa;2026005;matutino
+Débora Ribeiro;6º Ano B;Geografia;2026006;matutino
+Juliana Correia;7º Ano A;Língua Portuguesa;2026007;matutino
+Lucas Souza;7º Ano A;Arte;2026008;matutino
+Eduarda Araújo;7º Ano A;Educação Física;2026009;matutino
+Larissa Oliveira;7º Ano B;História;2026010;matutino
+Enzo Correia;7º Ano B;Matemática;2026011;matutino
+Helena Carvalho;7º Ano B;Geografia;2026012;matutino
+Caio Lopes;8º Ano A;Arte;2026013;matutino
+Tatiane Martins;8º Ano A;Geografia;2026014;integral
+Mariana Nunes;8º Ano A;Língua Inglesa;2026015;matutino
+Natália Almeida;8º Ano B;Educação Física;2026016;matutino
+Otávio Oliveira;8º Ano B;Língua Inglesa;2026017;matutino
+Fernanda Santos;8º Ano B;Ciências;2026018;matutino
+Nicolas Ferreira;9º Ano A;História;2026019;matutino
+Beatriz Carvalho;9º Ano A;Ciências;2026020;matutino
+Yasmin Oliveira;9º Ano A;Geografia;2026021;matutino
+Kevin Ferreira;9º Ano B;Ensino Religioso;2026022;matutino
+Rodrigo Souza;9º Ano B;Ensino Religioso;2026023;matutino
+Igor Araújo;9º Ano B;História;2026024;matutino
+Vinícius Rodrigues;1ª Série A;Filosofia;2026025;integral
+Rafaela Ribeiro;1ª Série A;Língua Inglesa;2026026;vespertino
+Thiago Martins;1ª Série A;História;2026027;vespertino
+Matheus Pereira;1ª Série B;Língua Inglesa;2026028;vespertino
+Carla Martins;1ª Série B;História;2026029;vespertino
+Ana Martins;2ª Série A;Geografia;2026030;vespertino
+Sofia Almeida;2ª Série A;Física;2026031;vespertino
+Gustavo Rodrigues;2ª Série A;Biologia;2026032;vespertino
+Felipe Oliveira;2ª Série B;Educação Física;2026033;vespertino
+Gabriela Lopes;2ª Série B;Arte;2026034;vespertino
+Isabela Pereira;3ª Série A;Matemática;2026035;integral
+Olívia Correia;3ª Série A;Língua Portuguesa;2026036;vespertino
+Pedro Ferreira;3ª Série A;Matemática;2026037;vespertino
+Samuel Pereira;3ª Série B;Biologia;2026038;integral
+Bruno Ribeiro;3ª Série B;Sociologia;2026039;vespertino

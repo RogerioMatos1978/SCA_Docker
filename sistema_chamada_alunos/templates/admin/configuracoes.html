@@ -18,6 +18,14 @@
         Kiosk em modo simplificado (esconde tudo, exceto o botão discreto de login — recomendado para terminal fixo)
     </label>
 
+    <label for="hora_corte_periodo">Horário de corte entre Matutino e Vespertino</label>
+    <input type="time" id="hora_corte_periodo" name="hora_corte_periodo" value="{{ configs.get('hora_corte_periodo', '13:00') }}">
+    <p class="texto-ajuda">
+        Antes desse horário o Kiosk mostra o período Matutino; a partir dele, Vespertino.
+        A fila de cada período se renova sozinha nessa virada — ninguém fica "preso" como já chamado
+        de um período para o outro. Baseado no horário local do servidor.
+    </p>
+
     <button type="submit" class="botao botao-primario">Salvar</button>
 </form>
 {% endblock %}

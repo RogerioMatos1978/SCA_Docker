@@ -5,6 +5,10 @@
 {% block conteudo_completo %}
 <div class="kiosk-topo">
     <span class="kiosk-titulo">📋 Terminal de Chamada</span>
+    <div class="kiosk-periodo-toggle" role="group" aria-label="Período">
+        <a href="{{ url_for('kiosk.fila', periodo='matutino') }}" class="kiosk-periodo-opcao {{ 'ativo' if periodo == 'matutino' }}">☀️ Matutino</a>
+        <a href="{{ url_for('kiosk.fila', periodo='vespertino') }}" class="kiosk-periodo-opcao {{ 'ativo' if periodo == 'vespertino' }}">🌇 Vespertino</a>
+    </div>
     <div class="kiosk-topo-acoes">
         <input type="text" id="kiosk-busca" placeholder="Buscar aluno..." autocomplete="off">
         {% if not modo_simplificado %}
@@ -15,6 +19,12 @@
         <a class="botao-discreto" href="{{ url_for('auth.login') if not session.get('usuario_id') else url_for('kiosk.gestao') }}" title="Login">🔒</a>
     </div>
 </div>
+{% if periodo_manual %}
+<div class="kiosk-periodo-aviso">
+    Período selecionado manualmente.
+    <a href="{{ url_for('kiosk.fila', periodo='auto') }}">Voltar para automático</a>
+</div>
+{% endif %}
 
 <div class="kiosk-salas-menu" id="kiosk-salas-menu">
     <button class="kiosk-sala-pill ativo" data-sala="">
@@ -31,7 +41,7 @@
 
 <div class="kiosk-corpo">
     <section class="kiosk-fila">
-        <h2>Alunos aguardando (<span id="kiosk-contagem">{{ alunos|length }}</span>)</h2>
+        <h2>Alunos aguardando — {{ 'Matutino' if periodo == 'matutino' else 'Vespertino' }} (<span id="kiosk-contagem">{{ alunos|length }}</span>)</h2>
         <div id="kiosk-lista" class="kiosk-lista">
             {% for aluno in alunos %}
             <div class="kiosk-cartao-aluno" data-nome="{{ aluno['nome']|lower }}" data-sala="{{ aluno['sala_nome'] or '' }}" data-id="{{ aluno['id'] }}">

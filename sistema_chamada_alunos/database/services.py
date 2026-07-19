@@ -176,7 +176,7 @@ def importar_salas_csv(conn, conteudo_texto):
 # Alunos
 # ---------------------------------------------------------------------------
 
-def listar_alunos(conn, sala_id=None, busca=None, apenas_ativos=None):
+def listar_alunos(conn, sala_id=None, busca=None, apenas_ativos=None, turno=None):
     sql = """SELECT alunos.*, salas.nome AS sala_nome, salas.cor AS sala_cor
               FROM alunos LEFT JOIN salas ON salas.id = alunos.sala_id
               WHERE 1 = 1"""
@@ -190,6 +190,9 @@ def listar_alunos(conn, sala_id=None, busca=None, apenas_ativos=None):
     if apenas_ativos is not None:
         sql += " AND alunos.ativo = ?"
         params.append(1 if apenas_ativos else 0)
+    if turno:
+        sql += " AND alunos.turno = ?"
+        params.append(turno)
     sql += " ORDER BY alunos.nome COLLATE NOCASE"
     return conn.execute(sql, params).fetchall()
 
@@ -209,21 +212,32 @@ def buscar_aluno_por_codigo(conn, codigo):
     ).fetchone()
 
 
-def criar_aluno(conn, nome, turma, sala_id, codigo=None, prioridade=0):
+TURNOS_VALIDOS = ("matutino", "vespertino", "integral")
+
+
+def normalizar_turno(valor):
+    """Garante que só um dos 3 valores válidos chegue no banco — usado
+    tanto pelos formulários quanto pela importação de CSV. Cai para
+    'matutino' se vier vazio/inválido."""
+    valor = (valor or "").strip().lower()
+    return valor if valor in TURNOS_VALIDOS else "matutino"
+
+
+def criar_aluno(conn, nome, turma, sala_id, codigo=None, prioridade=0, turno="matutino"):
     cur = conn.execute(
-        """INSERT INTO alunos (nome, turma, sala_id, codigo, prioridade, status, ativo)
-           VALUES (?, ?, ?, ?, ?, 'aguardando', 1)""",
-        (nome, turma, sala_id, codigo or None, 1 if prioridade else 0),
+        """INSERT INTO alunos (nome, turma, sala_id, codigo, prioridade, turno, status, ativo)
+           VALUES (?, ?, ?, ?, ?, ?, 'aguardando', 1)""",
+        (nome, turma, sala_id, codigo or None, 1 if prioridade else 0, normalizar_turno(turno)),
     )
     conn.commit()
     return cur.lastrowid
 
 
-def atualizar_aluno(conn, aluno_id, nome, turma, sala_id, codigo, prioridade):
+def atualizar_aluno(conn, aluno_id, nome, turma, sala_id, codigo, prioridade, turno="matutino"):
     conn.execute(
         """UPDATE alunos SET nome = ?, turma = ?, sala_id = ?, codigo = ?,
-           prioridade = ? WHERE id = ?""",
-        (nome, turma, sala_id, codigo or None, 1 if prioridade else 0, aluno_id),
+           prioridade = ?, turno = ? WHERE id = ?""",
+        (nome, turma, sala_id, codigo or None, 1 if prioridade else 0, normalizar_turno(turno), aluno_id),
     )
     conn.commit()
 
@@ -244,7 +258,17 @@ def definir_foto_aluno(conn, aluno_id, nome_arquivo):
 
 
 def resetar_status_aluno(conn, aluno_id):
-    """Volta o aluno para 'aguardando' (ex.: chamou errado)."""
+    """Devolve um aluno chamado por engano para a fila do PERÍODO
+    ATUAL: apaga a(s) chamada(s) feita(s) a ele dentro da janela do
+    período (matutino/vespertino) em que estamos agora, e volta
+    'status' para 'aguardando' (campo só informativo, quem manda na
+    fila é a ausência de chamada no período — ver fila_kiosk()).
+    Não mexe em chamadas de períodos/dias anteriores (histórico)."""
+    _, inicio_periodo, fim_periodo = _janela_periodo(conn)
+    conn.execute(
+        "DELETE FROM chamadas WHERE aluno_id = ? AND criado_em >= ? AND criado_em < ?",
+        (aluno_id, inicio_periodo, fim_periodo),
+    )
     conn.execute(
         "UPDATE alunos SET status = 'aguardando' WHERE id = ?", (aluno_id,)
     )
@@ -252,9 +276,12 @@ def resetar_status_aluno(conn, aluno_id):
 
 
 def importar_alunos_csv(conn, conteudo_texto):
-    """Espera linhas 'nome;turma;sala;codigo'. Cria a sala
-    automaticamente se ainda não existir. Não duplica aluno pelo
-    campo 'codigo' quando ele é informado. Retorna (criados, ignorados)."""
+    """Espera linhas 'nome;turma;sala;codigo;turno'. 'turno' é
+    opcional (cai para 'matutino' se vazio/ausente/inválido) e aceita
+    'matutino', 'vespertino' ou 'integral' (integral fica disponível
+    para chamada nos dois períodos). Cria a sala automaticamente se
+    ainda não existir. Não duplica aluno pelo campo 'codigo' quando
+    ele é informado. Retorna (criados, ignorados)."""
     leitor = csv.reader(io.StringIO(conteudo_texto), delimiter=";")
     criados, ignorados = 0, 0
     for linha in leitor:
@@ -264,6 +291,7 @@ def importar_alunos_csv(conn, conteudo_texto):
         turma = linha[1].strip() if len(linha) > 1 else ""
         nome_sala = linha[2].strip() if len(linha) > 2 else ""
         codigo = linha[3].strip() if len(linha) > 3 and linha[3].strip() else None
+        turno = normalizar_turno(linha[4]) if len(linha) > 4 else "matutino"
 
         if codigo and buscar_aluno_por_codigo(conn, codigo):
             ignorados += 1
@@ -274,7 +302,7 @@ def importar_alunos_csv(conn, conteudo_texto):
             sala = buscar_sala_por_nome(conn, nome_sala)
             sala_id = sala["id"] if sala else criar_sala(conn, nome_sala)
 
-        criar_aluno(conn, nome, turma, sala_id, codigo)
+        criar_aluno(conn, nome, turma, sala_id, codigo, turno=turno)
         criados += 1
     return criados, ignorados
 
@@ -368,22 +396,104 @@ def listar_alunos_com_presenca_hoje(conn, sala_id=None):
 
 
 # ---------------------------------------------------------------------------
+# Períodos (matutino / vespertino)
+# ---------------------------------------------------------------------------
+#
+# O sistema não usa mais o campo 'alunos.status' como fonte de verdade
+# para "quem pode ser chamado" — em vez disso, um aluno é considerado
+# disponível sempre que ele NÃO tiver nenhuma chamada registrada
+# dentro da janela de tempo do período atual (matutino ou vespertino).
+# Isso faz a fila se "resetar" sozinha a cada período/dia, sem precisar
+# de nenhum job agendado: assim que vira o período (ou o dia seguinte
+# começa), todo mundo volta a aparecer na fila automaticamente — é
+# assim que "todos os alunos ficam disponíveis para chamada no
+# matutino e no vespertino" ao longo do ano letivo.
+#
+# O corte entre os períodos é configurável (configuracoes.hora_corte_
+# periodo, formato "HH:MM", padrão "13:00") e comparado com o horário
+# LOCAL do servidor — por isso as colunas criado_em usam
+# datetime('now', 'localtime') no schema (ver models.py) e o Docker
+# roda com TZ configurado (ver Dockerfile/docker-compose.yml). Sem
+# isso, o corte compararia com UTC e desalinharia do horário real da
+# escola.
+
+def _janela_periodo(conn, quando=None):
+    """Retorna (periodo, inicio, fim) — 'periodo' é 'matutino' ou
+    'vespertino', e 'inicio'/'fim' são strings 'YYYY-MM-DD HH:MM:SS'
+    delimitando essa janela no dia de 'quando' (ou agora, se omitido).
+    Ex.: com corte 13:00, matutino = 00:00 até 13:00; vespertino =
+    13:00 até 00:00 do dia seguinte."""
+    quando = quando or datetime.datetime.now()
+    hora_corte_texto = obter_config(conn, "hora_corte_periodo", "13:00") or "13:00"
+    try:
+        hora, minuto = (int(parte) for parte in hora_corte_texto.split(":", 1))
+    except (ValueError, AttributeError):
+        hora, minuto = 13, 0
+
+    corte = quando.replace(hour=hora, minute=minuto, second=0, microsecond=0)
+    inicio_dia = quando.replace(hour=0, minute=0, second=0, microsecond=0)
+    fim_dia = inicio_dia + datetime.timedelta(days=1)
+
+    if quando < corte:
+        periodo, inicio, fim = "matutino", inicio_dia, corte
+    else:
+        periodo, inicio, fim = "vespertino", corte, fim_dia
+
+    formato = "%Y-%m-%d %H:%M:%S"
+    return periodo, inicio.strftime(formato), fim.strftime(formato)
+
+
+def periodo_atual(conn):
+    """'matutino' ou 'vespertino', com base no horário local de agora
+    e no corte configurado."""
+    periodo, _, _ = _janela_periodo(conn)
+    return periodo
+
+
+def alunos_chamados_no_periodo_atual(conn):
+    """Conjunto de aluno_id que já têm alguma chamada registrada
+    dentro da janela do período atual — usado pelas telas de gestão
+    para mostrar "Chamado" de forma condizente com a fila real do
+    Kiosk (em vez do campo 'status', que não reflete sozinho a virada
+    de período)."""
+    _, inicio_periodo, fim_periodo = _janela_periodo(conn)
+    linhas = conn.execute(
+        """SELECT DISTINCT aluno_id FROM chamadas
+           WHERE aluno_id IS NOT NULL AND criado_em >= ? AND criado_em < ?""",
+        (inicio_periodo, fim_periodo),
+    ).fetchall()
+    return {linha["aluno_id"] for linha in linhas}
+
+
+# ---------------------------------------------------------------------------
 # Fila de chamada / chamadas (Kiosk + Screen)
 # ---------------------------------------------------------------------------
 
-def fila_kiosk(conn, busca=None):
-    """Alunos que podem ser chamados agora: ativos, status
-    'aguardando' e não marcados como falta hoje. Prioridade primeiro,
-    depois ordem alfabética."""
+def fila_kiosk(conn, turno=None, busca=None):
+    """Alunos que podem ser chamados agora: ativos, sem falta
+    registrada hoje, e sem nenhuma chamada dentro do período atual
+    (ver _janela_periodo — é isso que faz a fila renovar sozinha a
+    cada matutino/vespertino). Quando 'turno' é informado, só entram
+    alunos desse turno ou com turno 'integral' (disponíveis nos dois
+    períodos). Prioridade primeiro, depois ordem alfabética."""
+    _, inicio_periodo, fim_periodo = _janela_periodo(conn)
     sql = """SELECT alunos.*, salas.nome AS sala_nome, salas.cor AS sala_cor
               FROM alunos
               LEFT JOIN salas ON salas.id = alunos.sala_id
               LEFT JOIN presencas
                 ON presencas.aluno_id = alunos.id AND presencas.data = ?
               WHERE alunos.ativo = 1
-                AND alunos.status = 'aguardando'
-                AND (presencas.status IS NULL OR presencas.status != 'faltante')"""
-    params = [_hoje()]
+                AND (presencas.status IS NULL OR presencas.status != 'faltante')
+                AND NOT EXISTS (
+                    SELECT 1 FROM chamadas
+                    WHERE chamadas.aluno_id = alunos.id
+                      AND chamadas.criado_em >= ?
+                      AND chamadas.criado_em < ?
+                )"""
+    params = [_hoje(), inicio_periodo, fim_periodo]
+    if turno:
+        sql += " AND (alunos.turno = ? OR alunos.turno = 'integral')"
+        params.append(turno)
     if busca:
         sql += " AND alunos.nome LIKE ?"
         params.append(f"%{busca}%")
@@ -499,11 +609,25 @@ def estatisticas_dashboard(conn):
     total_alunos = conn.execute(
         "SELECT COUNT(*) AS n FROM alunos WHERE ativo = 1"
     ).fetchone()["n"]
+
+    # "Aguardando" aqui usa a mesma regra da fila real do Kiosk
+    # (ninguém chamado dentro do período atual), não o campo 'status'
+    # bruto — senão o número ficaria desatualizado assim que o
+    # período vira sozinho.
+    _, inicio_periodo, fim_periodo = _janela_periodo(conn)
     aguardando = conn.execute(
-        "SELECT COUNT(*) AS n FROM alunos WHERE ativo = 1 AND status = 'aguardando'"
+        """SELECT COUNT(*) AS n FROM alunos
+           WHERE ativo = 1
+             AND NOT EXISTS (
+                 SELECT 1 FROM chamadas
+                 WHERE chamadas.aluno_id = alunos.id
+                   AND chamadas.criado_em >= ? AND chamadas.criado_em < ?
+             )""",
+        (inicio_periodo, fim_periodo),
     ).fetchone()["n"]
+
     chamados_hoje = conn.execute(
-        "SELECT COUNT(*) AS n FROM chamadas WHERE date(criado_em) = date('now')"
+        "SELECT COUNT(*) AS n FROM chamadas WHERE date(criado_em) = date('now', 'localtime')"
     ).fetchone()["n"]
     total_salas = conn.execute(
         "SELECT COUNT(*) AS n FROM salas WHERE ativa = 1"
@@ -513,6 +637,7 @@ def estatisticas_dashboard(conn):
         "aguardando": aguardando,
         "chamados_hoje": chamados_hoje,
         "total_salas": total_salas,
+        "periodo_atual": periodo_atual(conn),
     }
 
 

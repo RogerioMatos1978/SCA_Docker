@@ -5,10 +5,13 @@
 
 <p class="texto-ajuda">
     Formato esperado, uma linha por aluno, separado por ponto e vírgula (<code>;</code>):<br>
-    <code>nome;turma;sala;codigo</code><br>
-    Exemplo: <code>Maria Silva;9º Ano A;Matemática;2026001</code><br>
+    <code>nome;turma;sala;codigo;turno</code><br>
+    Exemplo: <code>Maria Silva;9º Ano A;Matemática;2026001;matutino</code><br>
     Se a sala informada ainda não existir, ela é criada automaticamente.
     Alunos com <code>codigo</code> já cadastrado são ignorados (não duplica).
+    <code>turno</code> é opcional (aceita <code>matutino</code>, <code>vespertino</code> ou
+    <code>integral</code>; vazio ou inválido vira <code>matutino</code>) e define em qual
+    período o aluno aparece na fila do Kiosk.
 </p>
 
 <p class="texto-ajuda">
