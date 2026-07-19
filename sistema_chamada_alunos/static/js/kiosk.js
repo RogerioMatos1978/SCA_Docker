@@ -13,6 +13,9 @@
     var contagemEl = document.getElementById("kiosk-contagem");
     var alertaEl = document.getElementById("kiosk-alerta");
     var buscaEl = document.getElementById("kiosk-busca");
+    var menuSalasEl = document.getElementById("kiosk-salas-menu");
+    var vazioFiltroEl = document.getElementById("kiosk-lista-vazia-filtro");
+    var salaSelecionada = "";
 
     function mostrarAlerta(mensagem) {
         alertaEl.textContent = mensagem;
@@ -53,13 +56,42 @@
         if (botao) rechamar(botao.dataset.id);
     });
 
+    // Combina busca por texto + filtro do menu de salas (pills no
+    // topo). Os dois critérios são aplicados juntos, para achar um
+    // aluno rápido tocando na sala/matéria e/ou digitando o nome —
+    // pensado para uso em touchscreen de TV.
+    function aplicarFiltro() {
+        var termo = (buscaEl.value || "").trim().toLowerCase();
+        var cartoes = listaEl.querySelectorAll(".kiosk-cartao-aluno");
+        var algumVisivel = false;
+
+        cartoes.forEach(function (cartao) {
+            var nomeOk = cartao.dataset.nome.indexOf(termo) !== -1;
+            var salaOk = !salaSelecionada || cartao.dataset.sala === salaSelecionada;
+            var visivel = nomeOk && salaOk;
+            cartao.style.display = visivel ? "" : "none";
+            if (visivel) algumVisivel = true;
+        });
+
+        if (vazioFiltroEl) {
+            vazioFiltroEl.style.display = (!algumVisivel && cartoes.length > 0) ? "block" : "none";
+        }
+    }
+
     if (buscaEl) {
-        buscaEl.addEventListener("input", function () {
-            var termo = buscaEl.value.trim().toLowerCase();
-            listaEl.querySelectorAll(".kiosk-cartao-aluno").forEach(function (cartao) {
-                var visivel = cartao.dataset.nome.indexOf(termo) !== -1;
-                cartao.style.display = visivel ? "" : "none";
+        buscaEl.addEventListener("input", aplicarFiltro);
+    }
+
+    if (menuSalasEl) {
+        menuSalasEl.addEventListener("click", function (evento) {
+            var pill = evento.target.closest(".kiosk-sala-pill");
+            if (!pill) return;
+            menuSalasEl.querySelectorAll(".kiosk-sala-pill").forEach(function (p) {
+                p.classList.remove("ativo");
             });
+            pill.classList.add("ativo");
+            salaSelecionada = pill.dataset.sala;
+            aplicarFiltro();
         });
     }
 
@@ -84,6 +116,15 @@
         if (itens.length > 5) itens[itens.length - 1].remove();
     }
 
+    function decrementarContagemPill(salaNome) {
+        if (!menuSalasEl) return;
+        var pillTodas = menuSalasEl.querySelector('.kiosk-sala-pill[data-sala=""] .kiosk-sala-pill-contagem');
+        if (pillTodas) pillTodas.textContent = Math.max(0, parseInt(pillTodas.textContent, 10) - 1);
+        if (!salaNome) return;
+        var pillSala = menuSalasEl.querySelector('.kiosk-sala-pill[data-sala="' + salaNome.replace(/"/g, '\\"') + '"] .kiosk-sala-pill-contagem');
+        if (pillSala) pillSala.textContent = Math.max(0, parseInt(pillSala.textContent, 10) - 1);
+    }
+
     socket.on("aluno_chamado", function (chamada) {
         // Se o aluno estava na fila de espera aqui, remove o cartão
         // (chamada nova, não rechamada) — a fila é filtrada por
@@ -91,6 +132,7 @@
         if (chamada.tipo === "chamada") {
             var cartao = listaEl.querySelector('.kiosk-cartao-aluno[data-id="' + chamada.aluno_id + '"]');
             if (cartao) {
+                decrementarContagemPill(cartao.dataset.sala);
                 cartao.remove();
                 atualizarContagem();
             }

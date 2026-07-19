@@ -410,6 +410,51 @@ input[type="color"] { padding: 4px; height: 42px; cursor: pointer; }
     font-weight: 600;
 }
 
+/* Menu de salas/matérias em pílulas — toque grande, rolagem
+   horizontal em telas estreitas, pensado para touchscreen de TV. */
+.kiosk-salas-menu {
+    display: flex;
+    gap: 10px;
+    padding: 14px 24px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    background: var(--cor-cartao-solida);
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+.kiosk-sala-pill {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 20px;
+    min-height: 46px;
+    border-radius: 999px;
+    border: 1px solid var(--cor-pill, var(--cor-borda));
+    background: transparent;
+    color: var(--cor-texto);
+    font-family: var(--fonte);
+    font-size: 0.92rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.kiosk-sala-pill:hover { box-shadow: var(--brilho); }
+.kiosk-sala-pill.ativo {
+    background: var(--cor-pill, var(--cor-primaria));
+    border-color: var(--cor-pill, var(--cor-primaria));
+    color: #001a06;
+    font-weight: 700;
+    box-shadow: var(--brilho-forte);
+}
+.kiosk-sala-pill-contagem {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 999px;
+    padding: 1px 9px;
+    font-size: 0.75rem;
+}
+.kiosk-sala-pill.ativo .kiosk-sala-pill-contagem { background: rgba(0, 0, 0, 0.35); }
+
 .kiosk-corpo {
     display: grid;
     grid-template-columns: 2fr 1fr;
@@ -417,36 +462,65 @@ input[type="color"] { padding: 4px; height: 42px; cursor: pointer; }
     padding: 20px 24px;
 }
 
-.kiosk-lista { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+/* Grade de cards (em vez de lista) — cartões maiores, com foto e
+   botão "Chamar" grandes, fáceis de tocar numa TV touchscreen. */
+.kiosk-lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 10px;
+}
 
 .kiosk-cartao-aluno {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 14px;
+    justify-content: flex-start;
+    text-align: center;
+    gap: 10px;
     background: var(--cor-cartao);
     border: 1px solid var(--cor-borda);
     border-radius: var(--raio);
     box-shadow: var(--sombra);
-    padding: 12px 16px;
-    flex-wrap: wrap;
+    padding: 24px 16px;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
+.kiosk-cartao-aluno:hover { box-shadow: var(--brilho); transform: translateY(-2px); }
 
 .kiosk-cartao-foto {
-    width: 52px; height: 52px;
+    width: 78px; height: 78px;
     border-radius: 50%;
     overflow: hidden;
     background: #000;
-    border: 1px solid var(--cor-borda);
+    border: 2px solid var(--cor-borda);
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
 }
 .kiosk-cartao-foto img { width: 100%; height: 100%; object-fit: cover; }
-.kiosk-cartao-inicial { font-weight: 700; font-size: 1.3rem; color: var(--cor-texto-suave); }
+.kiosk-cartao-inicial { font-weight: 700; font-size: 1.8rem; color: var(--cor-texto-suave); }
 
-.kiosk-cartao-info { flex: 1 1 140px; display: flex; flex-direction: column; min-width: 0; }
+.kiosk-cartao-info { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; min-width: 0; }
+.kiosk-cartao-info strong { font-size: 1.05rem; }
 .kiosk-cartao-info span { color: var(--cor-texto-suave); font-size: 0.82rem; }
+.kiosk-cartao-sala-tag {
+    display: inline-block;
+    margin-top: 2px;
+    padding: 2px 11px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 
-.kiosk-vazio { color: var(--cor-texto-suave); padding: 20px 0; }
+.kiosk-cartao-aluno .botao-chamar {
+    width: 100%;
+    min-height: 50px;
+    font-size: 1rem;
+    margin-top: 4px;
+}
+
+.kiosk-vazio { color: var(--cor-texto-suave); padding: 20px 0; grid-column: 1 / -1; text-align: center; }
 
 .kiosk-cartao-recente {
     display: flex;
@@ -590,7 +664,12 @@ input[type="color"] { padding: 4px; height: 42px; cursor: pointer; }
     .kiosk-topo-acoes { width: 100%; }
     #kiosk-busca { width: 100%; min-width: 0; flex: 1 1 100%; }
 
+    .kiosk-salas-menu { padding: 10px 16px; }
+    .kiosk-sala-pill { padding: 9px 16px; font-size: 0.85rem; }
+
     .kiosk-corpo { grid-template-columns: 1fr; padding: 16px; }
+    .kiosk-lista { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .kiosk-cartao-aluno { padding: 18px 12px; }
 
     .cabecalho-lista { flex-direction: column; align-items: stretch; }
     .cabecalho-lista .acoes { flex-direction: column; align-items: stretch; }

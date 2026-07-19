@@ -16,6 +16,17 @@
     </div>
 </div>
 
+<div class="kiosk-salas-menu" id="kiosk-salas-menu">
+    <button class="kiosk-sala-pill ativo" data-sala="">
+        Todas <span class="kiosk-sala-pill-contagem">{{ alunos|length }}</span>
+    </button>
+    {% for sala in salas %}
+    <button class="kiosk-sala-pill" data-sala="{{ sala['nome'] }}" style="--cor-pill: {{ sala['cor'] }};">
+        {{ sala['nome'] }} <span class="kiosk-sala-pill-contagem">{{ contagem_por_sala.get(sala['nome'], 0) }}</span>
+    </button>
+    {% endfor %}
+</div>
+
 <div id="kiosk-alerta" class="kiosk-alerta" style="display:none;"></div>
 
 <div class="kiosk-corpo">
@@ -23,7 +34,7 @@
         <h2>Alunos aguardando (<span id="kiosk-contagem">{{ alunos|length }}</span>)</h2>
         <div id="kiosk-lista" class="kiosk-lista">
             {% for aluno in alunos %}
-            <div class="kiosk-cartao-aluno" data-nome="{{ aluno['nome']|lower }}" data-id="{{ aluno['id'] }}">
+            <div class="kiosk-cartao-aluno" data-nome="{{ aluno['nome']|lower }}" data-sala="{{ aluno['sala_nome'] or '' }}" data-id="{{ aluno['id'] }}">
                 <div class="kiosk-cartao-foto">
                     {% if aluno['foto'] %}
                     <img src="{{ url_for('admin.servir_foto_aluno', nome_arquivo=aluno['foto']) }}" alt="{{ aluno['nome'] }}">
@@ -33,7 +44,10 @@
                 </div>
                 <div class="kiosk-cartao-info">
                     <strong>{{ aluno['nome'] }}{% if aluno['prioridade'] %} ⭐{% endif %}</strong>
-                    <span>{{ aluno['turma'] or '' }} {% if aluno['sala_nome'] %}· {{ aluno['sala_nome'] }}{% endif %}</span>
+                    <span>{{ aluno['turma'] or '' }}</span>
+                    {% if aluno['sala_nome'] %}
+                    <span class="kiosk-cartao-sala-tag" style="border-color: {{ aluno['sala_cor'] }}; color: {{ aluno['sala_cor'] }};">{{ aluno['sala_nome'] }}</span>
+                    {% endif %}
                 </div>
                 <button class="botao botao-primario botao-chamar" data-id="{{ aluno['id'] }}">Chamar</button>
             </div>
@@ -41,6 +55,7 @@
             <p class="kiosk-vazio">Nenhum aluno aguardando no momento.</p>
             {% endfor %}
         </div>
+        <p id="kiosk-lista-vazia-filtro" class="kiosk-vazio" style="display:none;">Nenhum aluno encontrado com esse filtro.</p>
     </section>
 
     <section class="kiosk-recentes">

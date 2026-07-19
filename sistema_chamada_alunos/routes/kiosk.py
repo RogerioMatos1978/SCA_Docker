@@ -12,6 +12,8 @@ aluno, trocar foto) continuam exigindo autenticação mesmo com o
 terminal público.
 """
 
+from collections import Counter
+
 from flask import (
     Blueprint, render_template, request, redirect, url_for, flash,
     current_app,
@@ -30,21 +32,26 @@ def _conn():
 
 @kiosk_bp.route("/")
 def fila():
-    """Tela pública do terminal: lista de alunos que podem ser
-    chamados agora + últimos chamados. A chamada em si é feita via
-    Socket.IO pelo static/js/kiosk.js."""
+    """Tela pública do terminal: grade de cards com os alunos que
+    podem ser chamados agora (+ últimos chamados) e um menu de salas
+    para filtrar por matéria/sala — pensado para toque em TV/tablet.
+    A chamada em si é feita via Socket.IO pelo static/js/kiosk.js."""
     conn = _conn()
     try:
         alunos = services.fila_kiosk(conn)
         recentes = services.ultimos_chamados(conn, limite=5)
         modo_simplificado = services.obter_config(conn, "kiosk_modo_simplificado", "0") == "1"
+        salas = services.listar_salas(conn, apenas_ativas=True)
     finally:
         conn.close()
+    contagem_por_sala = Counter(a["sala_nome"] for a in alunos if a["sala_nome"])
     return render_template(
         "kiosk/fila.html",
         alunos=alunos,
         recentes=recentes,
         modo_simplificado=modo_simplificado,
+        salas=salas,
+        contagem_por_sala=contagem_por_sala,
     )
 
 
